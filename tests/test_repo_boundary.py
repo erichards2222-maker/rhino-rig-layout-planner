@@ -46,7 +46,26 @@ class BoundaryTests(unittest.TestCase):
             self.assertFalse(path.is_absolute(), entry)
             self.assertNotIn("..", path.parts)
             self.assertTrue((ROOT / path).is_file(), entry)
-            self.assertIn(path.suffix.lower(), {".html", ".js", ".cjs", ".css", ".py", ".pyw", ".ps1", ".cmd", ".json", ".md", ".yml", ""}, entry)
+            self.assertIn(path.suffix.lower(), {".html", ".js", ".cjs", ".css", ".py", ".pyw", ".ps1", ".cmd", ".json", ".md", ".yml", ".jpg", ""}, entry)
+        # Documentation images are an explicitly bounded four-file allowlist, not a wildcard.
+        example_paths = {
+            "docs/images/deposit-large-before.jpg",
+            "docs/images/deposit-large-layout.jpg",
+            "docs/images/deposit-small-before.jpg",
+            "docs/images/deposit-small-layout.jpg",
+        }
+        self.assertEqual({p.relative_to(ROOT).as_posix() for p in (ROOT / "docs" / "images").iterdir()}, example_paths)
+        self.assertTrue(example_paths.issubset(set(files)))
+        self.assertTrue(example_paths.isdisjoint(inventory["runtimeFiles"]))
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        for image in example_paths:
+            self.assertIn(image, readme)
+            data = (ROOT / image).read_bytes()
+            self.assertTrue(data.startswith(b"\xff\xd8\xff"), image)
+            self.assertTrue(data.endswith(b"\xff\xd9"), image)
+            self.assertNotIn(b"Exif\x00", data)
+            self.assertNotIn(b"ICC_PROFILE", data)
+            self.assertNotIn(b"Photoshop 3.0", data)
         for path in (ROOT / "src").iterdir():
             if path.is_file():
                 self.assertIn(path.relative_to(ROOT).as_posix(), files)
