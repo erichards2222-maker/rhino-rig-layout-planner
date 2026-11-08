@@ -13,6 +13,11 @@ venv/
 *.bin
 *.png
 *.jpg
+# Only these four reviewed documentation examples may be tracked.
+!docs/images/deposit-large-before.jpg
+!docs/images/deposit-large-layout.jpg
+!docs/images/deposit-small-before.jpg
+!docs/images/deposit-small-layout.jpg
 *.jpeg
 *.webp
 *.gif

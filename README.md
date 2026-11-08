@@ -4,6 +4,27 @@
 
 **Complete final Windows/Firefox testing of folder selection, editing, navigation, exports, save/reopen, print and keyboard focus remains incomplete.** Suggested positions are geometric candidates, not guaranteed deployable positions or proven maximum capacity.
 
+## See what the planner does
+
+The **same overhead screenshots**, before analysis (left) and with the planner's suggested positions marked (right). These are illustrations from an earlier beta, not proof that the positions can be deployed in game. All candidate counts are geometric estimates.
+
+**Larger deposit — seven candidate locations** (you can deploy at most six active rigs with one Rhino):
+
+| Original screenshot | Candidate layout |
+| :---: | :---: |
+| ![Overhead screenshot showing a broad purple deposit before analysis](docs/images/deposit-large-before.jpg) | ![Same deposit with its purple boundary and seven suggested rig locations annotated](docs/images/deposit-large-layout.jpg) |
+
+<details>
+<summary><strong>Smaller deposit — one candidate location (second example)</strong></summary>
+
+| Original screenshot | Candidate layout |
+| :---: | :---: |
+| ![Overhead screenshot showing a small purple deposit before analysis](docs/images/deposit-small-before.jpg) | ![Same small deposit with one suggested rig location annotated](docs/images/deposit-small-layout.jpg) |
+
+</details>
+
+Both older example layouts used nominal **80 m** spacing, a **provisional 12.24 m** Rhino scale reference and **0 m additional boundary inset**. Actual placement depends on terrain, scale accuracy and in-game constraints; the displayed counts are not verified maxima.
+
 ## Get the player package
 
 Use the **Rhino-Rig-Planner-Runtime.zip** asset supplied with the beta. When a beta is published, player downloads will be listed in this repository's [Releases](https://github.com/erichards2222-maker/rhino-rig-layout-planner/releases). The Source ZIP is for contributors and includes the build tools and synthetic tests.
@@ -45,4 +66,4 @@ Use synthetic fixtures only. Preserve exact exclusion semantics, bounded solver 
 
 Local projects keep a functional screenshot fingerprint for exact reconnection. Shared exports omit unnecessary source metadata. PNG sanitation preserves encoded pixels and validates chunks after encoding without changing browser settings. Visible screenshot details still require inspection before sharing.
 
-Inspired by Fumlop/Grumlop's EDRhinoSpotter screenshot-planning precedent. No third-party code or imagery is included. This is an unofficial community utility, with no endorsement claimed. This software is available under the [MIT License](LICENSE); retain the copyright and permission notice when distributing copies or substantial portions.
+Inspired by Fumlop/Grumlop's EDRhinoSpotter screenshot-planning precedent. No third-party code is included. The illustrative Elite Dangerous gameplay screenshots were provided by the maintainer; game art and marks remain the property of their respective rights holders. This is an unofficial community utility, with no endorsement claimed. This software is available under the [MIT License](LICENSE); retain the copyright and permission notice when distributing copies or substantial portions.
