@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data: blob:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Rhino Rig Layout Planner</title><style>:root{color-scheme:dark;--bg:#0c171b;--panel:#15262b;--text:#edf4f1;--muted:#b9c9c7;--line:#40595e;--accent:#81ded0}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}header,.sourcebar,.projectbar,footer{padding:18px max(18px,calc((100vw - 1480px)/2))}header{background:#102a2c;border-bottom:1px solid var(--line)}h1{font-size:clamp(24px,3vw,36px);margin:0}h2{font-size:17px;margin:0 0 12px}p{margin:7px 0}.eyebrow{font-size:11px;letter-spacing:.18em;color:var(--accent)}.sourcebar,.projectbar{border-bottom:1px solid var(--line)}#pendingCount{margin-left:16px;color:var(--accent)}#folderLabel,#queueNotice{overflow-wrap:anywhere}.buttons{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:10px 0}button{font:inherit;font-weight:650;background:#25665e;color:white;border:1px solid #4a978a;border-radius:7px;padding:9px 13px;cursor:pointer}button:hover{background:#347f74}button.secondary{background:#1b363c;border-color:var(--line)}button:disabled{opacity:.4;cursor:default}:focus-visible{outline:3px solid #f6cc75;outline-offset:3px}input,textarea{font:inherit;color:var(--text);background:#102025;border:1px solid #68848b;border-radius:5px;padding:7px;max-width:100%}input[type=range],input[type=checkbox]{accent-color:var(--accent)}.control{display:block;margin:12px 0}.control input:not([type=checkbox]),textarea{display:block;width:100%;margin-top:5px}.zoomlabel{display:flex;align-items:center;gap:5px}.zoomlabel input{width:90px}#rig{max-width:1516px;margin:auto;padding:18px;display:grid;grid-template-columns:minmax(0,1.8fr) minmax(310px,1fr);gap:18px}.panel{padding:17px;background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:16px}.labelrow{display:flex;flex-wrap:wrap;justify-content:space-between;gap:7px}#sourceTag{overflow-wrap:anywhere}#canvasViewport{width:100%;max-height:75vh;overflow:auto;background:#071216;border-radius:7px}#imageCanvas{display:block;width:100%;height:auto;max-width:none;cursor:crosshair;touch-action:none}.status{padding:12px;background:#19353a;border:1px solid var(--line);border-radius:7px;min-height:48px;white-space:pre-wrap}.warn{color:#ffe0aa;border-color:#bd9953}.error{color:#ffd0c8;border-color:#b87870}.small,small{font-size:12px}.muted,small{color:var(--muted)}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.metrics>div{background:#102b30;padding:10px;border-radius:6px}.metrics b{display:block;font-size:24px;color:var(--accent);font-variant-numeric:tabular-nums}.metrics small{display:block}.mode{font-weight:bold;color:var(--accent)}.headline{display:flex;align-items:baseline;gap:14px}.headline strong{font-size:64px;line-height:1.2;color:var(--accent);font-variant-numeric:tabular-nums}.note{background:#342d1c;border-left:3px solid #e5bd70;padding:13px;font-size:13px;margin-bottom:16px}.tablewrap{overflow:auto;max-height:320px}table{border-collapse:collapse;width:100%;font-size:12px}td,th{text-align:right;padding:8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}th{position:sticky;top:0;background:var(--panel)}td:first-child,th:first-child{text-align:left}details{margin:12px 0}summary{cursor:pointer;font-weight:650}dialog{color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:12px;max-width:480px}dialog::backdrop{background:#000a}footer{font-size:12px;color:var(--muted)}@media(max-width:850px){#rig{grid-template-columns:1fr}#canvasViewport{max-height:60vh}.sourcebar button{flex:1 1 135px}}@media print{body{background:white;color:black;font-size:10pt}header{background:white}.sourcebar,.projectbar,.buttons,.filepick,details,.control,footer,#status{display:none!important}#rig{display:block;padding:0}.panel{background:white;border:0;break-inside:avoid}#canvasViewport{max-height:none;overflow:visible}#imageCanvas{width:100%!important}small,.muted,.mode,.metrics b,.headline strong{color:black}.tablewrap{max-height:none;overflow:visible}th{position:static;background:white}.note{background:white}aside{display:block}}
+#galleryDialog{width:min(850px,94vw);max-width:850px;max-height:85vh}#galleryList{padding:0;list-style:none;max-height:55vh;overflow:auto}#galleryList li{padding:8px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}#galleryList button{margin-right:7px}#imagePosition{overflow-wrap:anywhere;font-size:13px}#imageCanvas:focus{outline:3px solid #f6cc75;outline-offset:-3px}
+@media print{#sourceTag,#galleryDialog,dialog{display:none!important}}
+</style></head><body>
+<header><p class="eyebrow">SCREENSHOT WORKBENCH</p><h1>Rhino Rig Layout Planner</h1><p>Inspect an overhead deposit. Calibrate the scale. Compare candidate rig layouts.</p></header>
+<section class="sourcebar" aria-label="Screenshot source"><div><b id="connectionStatus">Offline manual mode</b><span id="pendingCount">Choose a screenshot below</span></div><p id="folderLabel">The Windows launcher remembers your screenshot folder. Direct-open mode uses files you select.</p>
+<div class="buttons"><button id="olderImage" disabled>Older image</button><button id="newerImage" disabled>Newer image</button><button id="loadLatest" class="secondary" disabled>Latest</button><button id="browseImages" class="secondary">Browse screenshots</button><button id="refreshSource" class="secondary" disabled>Refresh</button><button id="changeFolder" class="secondary" disabled>Change folder</button><button id="stopCompanion" class="secondary" disabled>Stop / Quit</button></div><p id="imagePosition">No screenshot loaded</p><p id="queueNotice" role="status" aria-live="polite"></p></section>
+<section class="projectbar"><div class="buttons"><button id="saveProject" class="secondary">Save project</button><button id="openProject" class="secondary">Open project</button><input hidden type="file" id="projectFile" accept=".json,application/json"><button id="importRig" class="secondary">Import rig markings only</button><input hidden type="file" id="legacyFile" accept=".json,application/json"><button id="cancelRestore" class="secondary" hidden>Cancel project reopen</button><span id="saveStatus">New analysis</span></div><p class="small">Projects contain markings and an image fingerprint, without image bytes or local paths. Reselect the matching image to resume.</p></section>
+<main id="rig"><section><div class="panel">
+<div class="labelrow"><h2>1. Screenshot &amp; boundary</h2><small id="sourceTag">No screenshot loaded</small></div><label class="filepick">Choose screenshot manually <input id="newFile" type="file" accept=".bmp,.bin,.png,.jpeg,.jpg,.webp,image/*"></label><button id="restoreRig" hidden>Restore saved markings on this image</button>
+<div class="buttons"><button id="auto" disabled>Detect purple region</button><button id="seed" class="secondary" disabled>Choose region by click</button><button id="polygon" class="secondary" disabled>Draw deposit boundary</button></div>
+<div class="buttons"><button id="excludePolygon" class="secondary" disabled>Exclude region: polygon</button><button id="excludeFreehand" class="secondary" disabled>Exclude region: freehand</button><button id="exclude" class="secondary" disabled>Exclude circle</button><button id="editExclusions" class="secondary" disabled>Select / edit exclusion</button></div>
+<div class="buttons"><button id="finish" class="secondary" disabled>Finish drawing (Enter)</button><button id="cancelDrawing" class="secondary" disabled>Cancel drawing (Esc)</button><button id="undo" class="secondary" disabled>Undo</button><button id="redo" class="secondary" disabled>Redo</button><button id="deleteExclusion" class="secondary" disabled>Delete selected exclusion</button></div>
+<p id="exclusionSelection" class="small" aria-live="polite">No exclusion selected</p><label class="control"><span id="exclusionRadiusLabel">Selected circle radius</span><input id="circleRadius" type="number" min="0.001" max="20000" step="any" disabled></label><p id="legacyGeometryNotice" class="small warn" hidden></p>
+<details><summary>Reset analysis controls</summary><p class="small">These change working markings, never the screenshot. Reset boundary retains exclusions and calibration; reset calibration retains pixel geometry.</p><div class="buttons"><button id="clearExclusions" class="secondary" disabled>Clear all exclusions</button><button id="resetBoundary" class="secondary" disabled>Reset boundary</button><button id="clearResult" class="secondary" disabled>Clear layout</button><button id="resetAnalysis" class="secondary" disabled>Reset image analysis</button></div></details>
+<div class="buttons"><label class="zoomlabel">Zoom <input id="zoom" type="range" min="100" max="300" step="25" value="100"></label><button id="fitImage" class="secondary">Fit image</button></div>
+<div id="canvasViewport" tabindex="0" aria-label="Scrollable screenshot; zoom and use scrollbars to pan"><canvas id="imageCanvas" tabindex="0" width="900" height="500" aria-label="Screenshot editor; Enter finishes a draft, Escape cancels it"></canvas></div><p class="small muted">Green: usable region. Red: exclusions. Yellow: calibration. Select an exclusion to drag it or its handles. Close a polygon at its start handle or with Enter. Zoom changes only the view; use scrollbars to pan.</p>
+<div id="status" class="status" role="status" aria-live="polite">Choose a directly overhead screenshot. All analysis stays on this computer.</div>
+<details><summary>Detection &amp; manual corrections</summary><label class="control">Purple detection sensitivity <span id="thresholdLabel">16</span><input type="range" id="threshold" min="8" max="32" value="16"></label><p>Color detection is uncertain. Inspect the mask; click inside the intended purple region or trace its boundary when needed. Re-detection preserves exclusions.</p><label class="control">Next circle radius (metres when calibrated; pixels otherwise)<input id="exclusionMeters" type="number" min="1" max="100" step="1" value="12"></label></details></div>
+<div class="panel"><h2>Candidate coordinates</h2><div class="tablewrap"><table><thead><tr><th>Candidate</th><th>Image X (px)</th><th>Image Y (px)</th><th>Right (m)</th><th>Down (m)</th></tr></thead><tbody id="rigRows"></tbody></table></div><p class="small muted">Pixels refer to the working canvas (at most 2048 pixels per side). Metric offsets start at the calibration line midpoint. These are image-plane positions.</p></div></section>
+<aside><div class="panel"><h2>2. Calibrate this image</h2><label class="control">Provisional Rhino length (m)<input id="referenceMeters" type="number" min="1" max="50" step="0.01" value="12.24"></label><div class="buttons"><button id="calibrate" disabled>Calibrate: click Rhino ends</button><button id="resetScale" class="secondary" disabled>Reset calibration</button></div><div class="metrics"><div><b id="pixelsLabel">—</b><small>Reference length in pixels</small></div><div><b id="scaleLabel">—</b><small>Estimated metres per pixel</small></div></div><p class="small muted">12.24 m is provisional, not a Frontier-verified dimension. Click both ends of the full visible Rhino. New images always need calibration. The camera HUD's “250M” is not a ground-distance ruler.</p></div>
+<div class="panel"><h2>3. Calculate layout</h2><label class="control">Minimum center spacing (m)<input id="spacingMeters" type="number" min="30" max="300" step="0.1" value="80"></label><details><summary>Optional conservative comparison &amp; search</summary><label class="control">Conservative boundary inset (m)<input id="marginMeters" type="number" min="0" max="50" step="0.5" value="5"></label><label><input type="checkbox" id="fine" checked> Detailed finite search (3° rotations, 4 m offsets)</label></details>
+<div class="buttons"><button id="plan" disabled>Calculate layout</button><button id="cancelRig" class="secondary" disabled>Cancel search</button></div><p id="selectedMode" class="mode">EDGE-ALLOWED — 0 m boundary inset</p><div class="headline"><strong id="primaryCount">—</strong><span>suggested rig centers</span></div><p id="selectedAssumptions" class="small">Minimum center spacing: 80 m. Selected additional inset: 0 m.</p><button id="toggleMargin" class="secondary" disabled>CONSERVATIVE — optional comparison</button>
+<div class="metrics comparisons"><div><b id="edgeCount">—</b><small>Edge-allowed · 0 m</small></div><div><b id="safeCount">—</b><small>Conservative comparison</small></div></div><p class="small muted" id="searchSummary">No layout calculated.</p><div class="buttons"><button id="savePng" disabled>Export annotated PNG</button><button id="saveCsv" class="secondary" disabled>Export candidate CSV</button><button id="saveJson" class="secondary" disabled>Export layout JSON</button><button id="printLayout" class="secondary" disabled>Print layout</button></div></div>
+<div class="note"><b>Geometric estimates, not verified deployment.</b> Counts are best-found layouts from a finite search, not maximum capacity. Mask membership, spacing and exclusions still apply at 0 m inset. Terrain and in-game placement rules need checking.</div><div class="panel"><label class="control">Analysis notes (optional)<textarea id="analysisNotes" maxlength="4000" rows="3"></textarea></label><p class="small muted">Notes are included in your project. Avoid identifying details if sharing it.</p></div></aside></main>
+<dialog id="unsavedDialog"><h2>Save current analysis?</h2><p>Replacing this image will clear unsaved calibration, boundary, exclusions and results.</p><div class="buttons"><button id="saveAndContinue">Save &amp; continue</button><button id="discardAndContinue" class="secondary">Discard &amp; continue</button><button id="cancelReplace" class="secondary">Cancel</button></div></dialog>
+<dialog id="galleryDialog"><h2>Browse screenshots</h2><p id="gallerySummary"></p><ul id="galleryList"></ul><div class="buttons"><button id="galleryMore" class="secondary" hidden>Show more</button><button id="galleryManual" class="secondary">Choose file manually</button><button id="galleryClose">Close</button></div></dialog>
+<footer>Inspired by Fumlop/Grumlop's EDRhinoSpotter screenshot-planning precedent. No third-party code or imagery is included.</footer>
+<script>
+'use strict';
+const EMBED_IMAGE = null;
+const EMBED_META = {};
+const $=id=>document.getElementById(id),canvas=$('imageCanvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});
+const st={img:null,w:0,h:0,base:null,mask:null,maskArea:0,bbox:null,cal:[],poly:[],mode:'idle',source:{},result:null,scenario:'edge',seed:null,exclusions:[],baseMask:null,legacyMask:false,selectedExclusion:null,draft:[],workBudget:3500000};
+const TWO_PI=2*Math.PI;let locked=false;
+let rigChanged=()=>{},rigImageInstalled=()=>{};
+function status(message,kind=''){const e=$('status');e.textContent=message;e.className='status'+(kind?' '+kind:'');}
+function setEnabled(ok){for(const id of ['auto','seed','polygon','calibrate','resetScale'])$(id).disabled=!ok;updateButtons();}
+function updateButtons(){const ready=!!st.img;
+ for(const id of ['plan'])$(id).disabled=!ready||!st.mask||!st.bbox||!metersPerPixel();
+ for(const id of ['exclude','excludePolygon','excludeFreehand','editExclusions','resetBoundary','resetAnalysis']){const e=$(id);if(e)e.disabled=!ready;}
+ $('undo').disabled=!ready||!(st.draft.length||st.poly.length&&st.mode==='poly'||Editor.canUndo());
+ if($('redo'))$('redo').disabled=!ready||!Editor.canRedo();
+ $('finish').disabled=!ready||!['poly','exclude-poly','freehand'].includes(st.mode)||st.draft.length<3;
+ if($('cancelDrawing'))$('cancelDrawing').disabled=!ready||!['poly','exclude-poly','freehand','cal'].includes(st.mode);
+ if($('deleteExclusion'))$('deleteExclusion').disabled=!st.selectedExclusion;
+ if($('clearExclusions'))$('clearExclusions').disabled=!st.exclusions.length;
+ $('clearResult').disabled=!st.result;for(const id of ['toggleMargin','savePng','saveCsv','saveJson','printLayout'])$(id).disabled=!st.result;
+ if($('legacyGeometryNotice')){$('legacyGeometryNotice').hidden=!st.legacyMask;$('legacyGeometryNotice').textContent='Older effective mask retained. Its existing holes cannot be restored by deleting old exclusions. Re-detect or retrace the boundary on this verified image to establish a new editable base.';}
+}
+function invalidNumber(id,min,max){const n=Number($(id).value);return !Number.isFinite(n)||n<min||n>max?null:n}
+function metersPerPixel(){if(st.cal.length!==2)return null;const length=invalidNumber('referenceMeters',1,50);if(length===null)return null;const p=Math.hypot(st.cal[1].x-st.cal[0].x,st.cal[1].y-st.cal[0].y);if(p<8)return null;const mpp=length/p;return mpp>=0.005&&mpp<=10?mpp:null;}
+function setCalibrationLabels(){const p=st.cal.length===2?Math.hypot(st.cal[1].x-st.cal[0].x,st.cal[1].y-st.cal[0].y):null;const mpp=metersPerPixel();$('pixelsLabel').textContent=p!==null?p.toFixed(1):'—';$('scaleLabel').textContent=mpp!==null?mpp.toFixed(4):'—';updateButtons()}
+function getXY(e){const rect=canvas.getBoundingClientRect();return{x:(e.clientX-rect.left)*st.w/rect.width,y:(e.clientY-rect.top)*st.h/rect.height};}
+let rigEpoch=0;
+function resetResults(){rigChanged();rigEpoch++;st.result=null;st.scenario='edge';$('safeCount').textContent='—';$('edgeCount').textContent='—';$('searchSummary').textContent='No layout calculated.';$('rigRows').replaceChildren();$('toggleMargin').textContent='CONSERVATIVE — optional comparison';renderSelection();updateButtons();}
+function installImage(img,meta){const MAX_SIDE=2048;const scale=Math.min(1,MAX_SIDE/Math.max(img.naturalWidth,img.naturalHeight));st.w=meta?.workingWidth||Math.max(1,Math.round(img.naturalWidth*scale));st.h=meta?.workingHeight||Math.max(1,Math.round(img.naturalHeight*scale));
+ if(st.w*st.h>4500000)throw new Error('Image exceeds planner pixel bound');canvas.width=st.w;canvas.height=st.h;ctx.drawImage(img,0,0,st.w,st.h);
+ st.img=img;st.base=document.createElement('canvas');st.base.width=st.w;st.base.height=st.h;st.base.getContext('2d',{willReadFrequently:true}).drawImage(img,0,0,st.w,st.h);
+ st.mask=null;st.baseMask=null;st.legacyMask=false;st.bbox=null;st.maskArea=0;st.cal=[];st.poly=[];st.draft=[];st.mode='idle';st.seed=null;st.exclusions=[];st.selectedExclusion=null;Editor.clearHistory();st.source=meta||{};resetResults();setEnabled(true);setCalibrationLabels();$('sourceTag').textContent=(meta?.source_file_name||'Selected local image')+' · '+st.w+'×'+st.h;
+ status('Image loaded. Detect purple, inspect the mask, then calibrate with two clicks on the Rhino.');$('restoreRig').hidden=true;draw();rigImageInstalled();}
+function kind(bytes){if(bytes.length>=8&&bytes[0]===137&&bytes[1]===80&&bytes[2]===78&&bytes[3]===71)return'image/png';if(bytes[0]===255&&bytes[1]===216&&bytes[2]===255)return'image/jpeg';if(bytes[0]===66&&bytes[1]===77)return'image/bmp';if(bytes.length>=12&&String.fromCharCode(...bytes.slice(0,4))==='RIFF'&&String.fromCharCode(...bytes.slice(8,12))==='WEBP')return'image/webp';return null;}
+$('cancelRig').addEventListener('click',()=>{resetResults();status('Layout search canceled.');draw();});
+function largestComponent(bits,seed=null){
+ if(seed!==null&&!bits[seed])return null;
+ const N=st.w*st.h,visited=new Uint8Array(N),queue=new Int32Array(N);let max=0,best=[],bestbox=null,area=0;
+ function grow(start){let head=0,tail=0;queue[tail++]=start;visited[start]=1;let minx=st.w,miny=st.h,maxx=0,maxy=0;
+ while(head<tail){const k=queue[head++],x=k%st.w,y=Math.floor(k/st.w);if(x<minx)minx=x;if(y<miny)miny=y;if(x>maxx)maxx=x;if(y>maxy)maxy=y;
+ for(const n of [x>0?k-1:-1,x+1<st.w?k+1:-1,y>0?k-st.w:-1,y+1<st.h?k+st.w:-1])if(n>=0&&bits[n]&&!visited[n]){visited[n]=1;queue[tail++]=n;}}
+ return {size:tail,items:queue.slice(0,tail),box:{minx,miny,maxx,maxy}};}
+ if(seed!==null){const c=grow(seed);best=c.items;bestbox=c.box;max=c.size;}
+ else for(let i=0;i<N;i++)if(bits[i]&&!visited[i]){const c=grow(i);if(c.size>max){max=c.size;best=c.items;bestbox=c.box;}}
+ if(max<300)return null;const out=new Uint8Array(N);for(const k of best)out[k]=1;return {mask:out,bbox:bestbox,area:max};}
+function detectPurple(seed){if(!st.base)return;Editor.checkpoint();resetResults();const w=st.w,h=st.h,data=st.base.getContext('2d',{willReadFrequently:true}).getImageData(0,0,w,h).data,threshold=Number($('threshold').value);const bits=new Uint8Array(w*h);
+ for(let i=0,p=0;i<bits.length;i++,p+=4){const r=data[p],g=data[p+1],b=data[p+2];bits[i]=(r>55&&b>50&&r-g>threshold&&b-g>threshold&&Math.abs(r-b)<85)?1:0;}
+ let seedIndex=null;
+ if(seed){
+  const x=Math.floor(seed.x),y=Math.floor(seed.y);
+  seedIndex=x>=0&&x<w&&y>=0&&y<h?y*w+x:-1;
+ }
+ const obj=largestComponent(bits,seedIndex);
+ if(!obj){
+  st.mask=null;st.baseMask=null;st.legacyMask=false;st.poly=[];st.bbox=null;st.maskArea=0;
+  let message='No single connected purple region found. Try a smaller sensitivity value, or draw the boundary manually.';
+  if(seedIndex!==null){
+   st.mode='seed';
+   message=bits[seedIndex]?'This purple region is too small. Click a larger region or draw the boundary manually.'
+                          :'That pixel is outside the classified purple region. Click inside the desired region or draw the boundary manually.';
+  }
+  status(message,'warn');draw();updateButtons();return;
+ }
+ st.baseMask=obj.mask;st.legacyMask=false;st.mode='idle';st.poly=[];st.draft=[];Editor.rebuild();draw();updateButtons();status('Detected one connected purple region ('+obj.area.toLocaleString()+' pixels). Inspect its outline. Correct it manually if any portions are missing.');}
+function applyMask(m){let minx=st.w,miny=st.h,maxx=0,maxy=0,count=0;for(let y=0;y<st.h;y++)for(let x=0;x<st.w;x++){if(m[y*st.w+x]){count++;if(x<minx)minx=x;if(x>maxx)maxx=x;if(y<miny)miny=y;if(y>maxy)maxy=y;}}st.mask=m;st.maskArea=count;st.bbox=count?{minx,miny,maxx,maxy}:null;resetResults();draw();updateButtons();}
+function usePolygon(){return Editor.finish();}
+function draw(){if(!st.base)return;ctx.clearRect(0,0,st.w,st.h);ctx.drawImage(st.base,0,0);if(st.mask){const overlay=document.createElement('canvas');overlay.width=st.w;overlay.height=st.h;const oc=overlay.getContext('2d'),im=oc.createImageData(st.w,st.h);for(let i=0;i<st.mask.length;i++)if(st.mask[i]){const n=4*i;im.data[n]=38;im.data[n+1]=210;im.data[n+2]=159;im.data[n+3]=48;}oc.putImageData(im,0,0);ctx.drawImage(overlay,0,0);}
+ if(st.exclusions.length){for(const p of st.exclusions){const selected=p.id===st.selectedExclusion;ctx.strokeStyle=selected?'#fff2a8':'#ff8b82';ctx.fillStyle='#e45b5b33';ctx.lineWidth=selected?3:2;ctx.beginPath();if(p.type==='polygon'){ctx.moveTo(p.points[0].x,p.points[0].y);for(const v of p.points.slice(1))ctx.lineTo(v.x,v.y);ctx.closePath();}else ctx.arc(p.x,p.y,p.radius,0,TWO_PI);ctx.fill();ctx.stroke();if(selected){const handles=p.type==='polygon'?p.points:[{x:p.x,y:p.y},{x:p.x+p.radius,y:p.y}];ctx.fillStyle='#fff';for(const v of handles){ctx.beginPath();ctx.arc(v.x,v.y,4,0,TWO_PI);ctx.fill();}}}}
+ if(st.cal.length){ctx.lineWidth=Math.max(2,st.w/650);ctx.strokeStyle='#ffdb70';ctx.fillStyle='#ffdb70';for(const p of st.cal){ctx.beginPath();ctx.arc(p.x,p.y,6,0,TWO_PI);ctx.fill();}if(st.cal.length===2){ctx.beginPath();ctx.moveTo(st.cal[0].x,st.cal[0].y);ctx.lineTo(st.cal[1].x,st.cal[1].y);ctx.stroke();}}
+ if(st.draft.length){ctx.strokeStyle=st.mode==='poly'?'#fcdf6c':'#ff8b82';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(st.draft[0].x,st.draft[0].y);for(const p of st.draft.slice(1))ctx.lineTo(p.x,p.y);if(st.draft.length>2){ctx.lineTo(st.draft[0].x,st.draft[0].y);}ctx.stroke();for(const p of st.draft){ctx.fillStyle='#fcdf6c';ctx.beginPath();ctx.arc(p.x,p.y,4,0,TWO_PI);ctx.fill();}}
+ if(st.result){const s=st.scenario==='safe'?st.result.safe:st.result.edge;ctx.lineWidth=3;for(const p of s.points){ctx.beginPath();ctx.arc(p.x,p.y,Math.max(9,st.w/140),0,TWO_PI);ctx.fillStyle='#0e6f58';ctx.strokeStyle='#fff';ctx.fill();ctx.stroke();ctx.font=`bold ${Math.max(12,st.w/95)}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='white';ctx.fillText(String(p.n),p.x,p.y);}}}
+// A canvas pixel covers [column,column+1] × [row,row+1]. Cache counts of
+// excluded pixels so a disk query can skip whole empty rectangles at once.
+const exclusionIndices = new WeakMap();
+function exclusionIndex() {
+ const prior = exclusionIndices.get(st.mask);
+ if (prior && prior.stride === st.w + 1) return prior;
+ const stride = st.w + 1, sums = new Uint32Array(stride * (st.h + 1));
+ for (let y = 0; y < st.h; y++) {
+  let row = 0;
+  for (let x = 0; x < st.w; x++) {
+   if (!st.mask[y * st.w + x]) row++;
+   sums[(y+1)*stride+x+1] = sums[y*stride+x+1] + row;
+  }
+ }
+ const index = {sums, stride};
+ exclusionIndices.set(st.mask, index);
+ return index;
+}
+function diskHitsExcluded(index, x, y, radiusSquared, left, top, right, bottom) {
+ const dx = Math.max(left - x, 0, x - right), dy = Math.max(top - y, 0, y - bottom);
+ if (dx*dx + dy*dy >= radiusSquared) return false;
+ const {sums, stride} = index;
+ const count = sums[bottom*stride+right] - sums[top*stride+right]
+             - sums[bottom*stride+left] + sums[top*stride+left];
+ if (!count) return false;
+ const width = right - left, height = bottom - top;
+ if (count === width * height) return true;
+ // Any excluded cell in a rectangle wholly contained in the disk is a hit.
+ const farX = Math.max(x - left, right - x), farY = Math.max(y - top, bottom - y);
+ if (farX*farX + farY*farY <= radiusSquared) return true;
+ if (width >= height) {
+  const mid = left + Math.floor(width / 2);
+  return diskHitsExcluded(index, x, y, radiusSquared, left, top, mid, bottom) ||
+         diskHitsExcluded(index, x, y, radiusSquared, mid, top, right, bottom);
+ }
+ const mid = top + Math.floor(height / 2);
+ return diskHitsExcluded(index, x, y, radiusSquared, left, top, right, mid) ||
+        diskHitsExcluded(index, x, y, radiusSquared, left, mid, right, bottom);
+}
+function insetCheck(x, y, marginPx) {
+ const ix = Math.floor(x), iy = Math.floor(y);
+ if (ix < 0 || iy < 0 || ix >= st.w || iy >= st.h || !st.mask?.[iy*st.w+ix]) return false;
+ if (Math.min(x, y, st.w-x, st.h-y) < marginPx) return false;
+ for (const shape of st.exclusions) {
+  if(shape.type==='polygon'){
+   if(Editor.contains(shape.points,{x,y}))return false;
+   if(marginPx>0&&Editor.polygonDistance(shape.points,{x,y})<marginPx)return false;
+  }else{
+   const dx=x-shape.x,dy=y-shape.y,distanceSquared=dx*dx+dy*dy,clearance=shape.radius+marginPx;
+   if(marginPx===0?distanceSquared<=clearance*clearance:distanceSquared<clearance*clearance)return false;
+  }
+ }
+ if (marginPx <= 0) return true;
+ return !diskHitsExcluded(exclusionIndex(), x, y, marginPx*marginPx,
+                          Math.floor(x-marginPx), Math.floor(y-marginPx),
+                          Math.ceil(x+marginPx), Math.ceil(y+marginPx));
+}
+function excludeCircle(center,radius){return Editor.addCircle(center,radius);}
+const Editor=(()=>{
+ const MAX_SHAPES=128,MAX_VERTICES=512,HISTORY_BYTES=24*1024*1024,HISTORY_COUNT=32,FREEHAND_TOLERANCE=1.5;
+ let past=[],future=[],historyBytes=0,sequence=0,drag=null,draftBefore=null,suppressClick=false;
+ const copy=o=>JSON.parse(JSON.stringify(o));
+ const point=p=>!!p&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.x>=-4096&&p.y>=-4096&&p.x<=6144&&p.y<=6144;
+ function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,n=dx*dx+dy*dy,t=n?Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/n)):0;return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);}
+ function contains(points,p){let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const a=points[j],b=points[i];if(segmentDistance(p,a,b)<=1e-9)return true;if((a.y>p.y)!==(b.y>p.y)&&p.x<(b.x-a.x)*(p.y-a.y)/(b.y-a.y)+a.x)inside=!inside;}return inside;}
+ function polygonDistance(points,p){let d=Infinity;for(let i=0;i<points.length;i++)d=Math.min(d,segmentDistance(p,points[i],points[(i+1)%points.length]));return d;}
+ function cross(a,b,c){return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);}
+ function intersects(a,b,c,d){const x=cross(a,b,c),y=cross(a,b,d),z=cross(c,d,a),w=cross(c,d,b);if(((x>1e-9&&y< -1e-9)||(x< -1e-9&&y>1e-9))&&((z>1e-9&&w< -1e-9)||(z< -1e-9&&w>1e-9)))return true;return Math.abs(x)<=1e-9&&segmentDistance(c,a,b)<=1e-9||Math.abs(y)<=1e-9&&segmentDistance(d,a,b)<=1e-9||Math.abs(z)<=1e-9&&segmentDistance(a,c,d)<=1e-9||Math.abs(w)<=1e-9&&segmentDistance(b,c,d)<=1e-9;}
+ function validatePolygon(points){if(!Array.isArray(points)||points.length<3||points.length>MAX_VERTICES||points.some(p=>!point(p)))throw Error('Use 3–512 finite vertices within the supported image workspace.');let area=0;for(let i=0;i<points.length;i++){const a=points[i],b=points[(i+1)%points.length];if(Math.hypot(a.x-b.x,a.y-b.y)<1e-6)throw Error('Outline has duplicate adjacent vertices. Move or remove a vertex.');const c=points[(i+2)%points.length];if(Math.abs(cross(a,b,c))<=1e-9&&(b.x-a.x)*(c.x-b.x)+(b.y-a.y)*(c.y-b.y)<0)throw Error('Outline backtracks along an edge. Remove the redundant vertex.');area+=a.x*b.y-b.x*a.y;for(let j=i+1;j<points.length;j++){if(j===i+1||i===0&&j===points.length-1)continue;if(intersects(a,b,points[j],points[(j+1)%points.length]))throw Error('Outline crosses or touches itself. Move/remove vertices before finishing.');}}if(Math.abs(area)<1e-6)throw Error('Outline has no enclosed area.');return true;}
+ function validateShape(s){if(!s||typeof s!=='object'||!/^ex-[A-Za-z0-9-]{1,60}$/.test(s.id||''))throw Error('Invalid exclusion identity.');if(s.type==='polygon'){if(!['polygon','freehand'].includes(s.kind))throw Error('Invalid outline type.');validatePolygon(s.points);if(s.kind==='freehand'&&(!Number.isFinite(s.tolerancePx)||s.tolerancePx<0||s.tolerancePx>8))throw Error('Invalid outline tolerance.');}else if(s.type==='circle'){if(!point(s)||!Number.isFinite(s.radius)||s.radius<=0||s.radius>20000)throw Error('Invalid circle geometry.');}else throw Error('Unsupported exclusion shape.');return true;}
+ function id(){let n;do{n='ex-'+(++sequence);}while(st.exclusions.some(s=>s.id===n));return n;}
+ function capture(){const values={};for(const key of ['referenceMeters','spacingMeters','marginMeters','exclusionMeters','threshold'])values[key]=$(key).value;values.fine=$('fine').checked;return {baseMask:st.baseMask?.slice()||st.mask?.slice()||null,legacyMask:!!st.legacyMask,cal:copy(st.cal),poly:copy(st.poly),exclusions:copy(st.exclusions),selected:st.selectedExclusion,result:st.result?copy(st.result):null,scenario:st.scenario,values};}
+ function cost(s){return (s.baseMask?.byteLength||0)+JSON.stringify({...s,baseMask:null}).length*2;}
+ function trim(){historyBytes=past.reduce((n,s)=>n+cost(s),0);while(past.length>HISTORY_COUNT||historyBytes>HISTORY_BYTES){historyBytes-=cost(past.shift());}}
+ function checkpoint(snapshot=null){past.push(snapshot||capture());future=[];trim();}
+ function clearHistory(){past=[];future=[];historyBytes=0;drag=null;draftBefore=null;st.draft=[];}
+ function showResult(){if(st.result){$('safeCount').textContent=st.result.safe.points.length;$('edgeCount').textContent=st.result.edge.points.length;$('searchSummary').textContent='Restored calculation snapshot; '+(st.result.safe.complete&&st.result.edge.complete?'finite search completed.':'partial search.');}renderSelection();renderTable();setCalibrationLabels();describeSelection();draw();updateButtons();}
+ function restore(s){rigEpoch++;st.baseMask=s.baseMask?.slice()||null;st.legacyMask=s.legacyMask;st.cal=copy(s.cal);st.poly=copy(s.poly);st.exclusions=copy(s.exclusions);st.selectedExclusion=s.selected;st.mode='idle';st.draft=[];draftBefore=null;for(const [k,v] of Object.entries(s.values||{})){if(k==='fine')$(k).checked=v;else $(k).value=v;}rebuild();st.result=s.result?copy(s.result):null;st.scenario=s.scenario;rigChanged();showResult();}
+ function undo(){if(drag){cancelDrag();return;}if(st.draft.length){st.draft.pop();rigChanged();draw();updateButtons();status('Removed the latest draft vertex.');return;}if(draftBefore){cancel();return;}if(!past.length)return;const s=past.pop();future.push(capture());restore(s);trim();status('Undid the last analysis operation.');}
+ function redo(){if(drag){cancelDrag();return;}if(st.draft.length||draftBefore||!future.length)return;past.push(capture());const s=future.pop();trim();restore(s);status('Redid the analysis operation.');}
+ function shapeContains(s,p){return s.type==='polygon'?contains(s.points,p):Math.hypot(p.x-s.x,p.y-s.y)<=s.radius;}
+ function effectiveMask(base,width,height,shapes){const mask=base.slice();let work=0;for(const s of shapes){const points=s.type==='polygon'?s.points:[{x:s.x-s.radius,y:s.y-s.radius},{x:s.x+s.radius,y:s.y+s.radius}];const left=Math.max(0,Math.floor(Math.min(...points.map(p=>p.x)))),right=Math.min(width-1,Math.ceil(Math.max(...points.map(p=>p.x)))),top=Math.max(0,Math.floor(Math.min(...points.map(p=>p.y)))),bottom=Math.min(height-1,Math.ceil(Math.max(...points.map(p=>p.y))));work+=Math.max(0,right-left+1)*Math.max(0,bottom-top+1)*(s.type==='polygon'?s.points.length:1);if(work>50000000)throw Error('Exclusion raster work limit reached. Simplify large outlines or reduce exclusion count.');for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++)if(mask[y*width+x]&&shapeContains(s,{x:x+.5,y:y+.5}))mask[y*width+x]=0;}return mask;}
+ function rebuild(){if(!st.baseMask){st.mask=null;st.bbox=null;st.maskArea=0;resetResults();draw();updateButtons();return;}applyMask(effectiveMask(st.baseMask,st.w,st.h,st.exclusions));}
+ function ensureBase(){if(!st.baseMask&&st.mask)st.baseMask=st.mask.slice();}
+ function addCircle(center,radius){if(st.exclusions.length>=MAX_SHAPES)throw Error('This image already has 128 exclusions.');const s={id:id(),type:'circle',x:center.x,y:center.y,radius};validateShape(s);ensureBase();if(st.baseMask)effectiveMask(st.baseMask,st.w,st.h,[...st.exclusions,s]);checkpoint();st.exclusions.push(s);st.selectedExclusion=s.id;rebuild();describeSelection();return s.id;}
+ function addPolygon(points,kind='polygon',tolerancePx=FREEHAND_TOLERANCE){if(st.exclusions.length>=MAX_SHAPES)throw Error('This image already has 128 exclusions.');const s={id:id(),type:'polygon',kind,points:copy(points)};if(kind==='freehand')s.tolerancePx=tolerancePx;validateShape(s);ensureBase();if(st.baseMask)effectiveMask(st.baseMask,st.w,st.h,[...st.exclusions,s]);checkpoint();st.exclusions.push(s);st.selectedExclusion=s.id;rebuild();describeSelection();return s.id;}
+ function select(value){st.selectedExclusion=st.exclusions.some(s=>s.id===value)?value:null;describeSelection();draw();updateButtons();}
+ function selected(){return st.exclusions.find(s=>s.id===st.selectedExclusion);}
+ function describeSelection(){const s=selected(),mpp=metersPerPixel();if($('exclusionSelection'))$('exclusionSelection').textContent=s?'Selected '+s.id+' — '+(s.type==='circle'?'circle':s.kind+' outline'):'No exclusion selected';if($('exclusionRadiusLabel'))$('exclusionRadiusLabel').textContent=(s?.type==='circle'?'Selected circle radius':'Next circle radius')+(mpp?' (m)':' (image pixels; uncalibrated)');if($('circleRadius')){$('circleRadius').disabled=s?.type!=='circle';if(s?.type==='circle')$('circleRadius').value=String(Number((s.radius*(mpp||1)).toFixed(6)));}}
+ function alter(value,fn){const index=st.exclusions.findIndex(s=>s.id===value);if(index<0)throw Error('Select an exclusion first.');const candidate=copy(st.exclusions[index]);fn(candidate);validateShape(candidate);if(st.baseMask)effectiveMask(st.baseMask,st.w,st.h,st.exclusions.map(s=>s.id===value?candidate:s));checkpoint();st.exclusions[index]=candidate;st.selectedExclusion=value;rebuild();describeSelection();}
+ function moveShape(value,dx,dy){if(!Number.isFinite(dx)||!Number.isFinite(dy))throw Error('Invalid movement.');alter(value,s=>{if(s.type==='circle'){s.x+=dx;s.y+=dy;}else for(const p of s.points){p.x+=dx;p.y+=dy;}});}
+ function moveVertex(value,index,p){alter(value,s=>{if(s.type!=='polygon'||!Number.isInteger(index)||index<0||index>=s.points.length)throw Error('Invalid vertex.');s.points[index]={x:p.x,y:p.y};});}
+ function resizeCircle(value,radius){alter(value,s=>{if(s.type!=='circle')throw Error('Select a circle.');s.radius=radius;});}
+ function setSelectedRadius(){const s=selected();if(s?.type!=='circle')return;const n=Number(($('circleRadius')||$('exclusionMeters')).value);try{resizeCircle(s.id,n/(metersPerPixel()||1));}catch(e){describeSelection();status(e.message,'warn');}}
+ function deleteSelected(){if(!selected())return;checkpoint();st.exclusions=st.exclusions.filter(s=>s.id!==st.selectedExclusion);st.selectedExclusion=null;rebuild();describeSelection();status(st.legacyMask?'Exclusion object removed. Older mask holes remain until the boundary is rebuilt.':'Selected exclusion removed; usable pixels restored from the base boundary.');}
+ function clearExclusions(){if(!st.exclusions.length)return;checkpoint();st.exclusions=[];st.selectedExclusion=null;rebuild();describeSelection();status(st.legacyMask?'Exclusion objects cleared. Older mask holes remain until the boundary is rebuilt.':'Exclusions cleared; base boundary and calibration retained.');}
+ function resetBoundary(){checkpoint();st.baseMask=null;st.legacyMask=false;st.mask=null;st.poly=[];st.draft=[];st.mode='idle';draftBefore=null;rebuild();status('Boundary reset. Screenshot, exclusions and calibration retained. Detect or trace a new boundary.');}
+ function resetCalibration(){checkpoint();st.cal=[];st.mode='idle';st.draft=[];draftBefore=null;resetResults();setCalibrationLabels();describeSelection();draw();status('Calibration reset. Pixel boundary and exclusions retained.');}
+ function clearLayout(){checkpoint();resetResults();draw();status('Candidate layout cleared. Geometry and calibration retained.');}
+ function resetAnalysis(){rigEpoch++;st.baseMask=null;st.mask=null;st.legacyMask=false;st.bbox=null;st.maskArea=0;st.exclusions=[];st.selectedExclusion=null;st.cal=[];st.poly=[];st.draft=[];st.mode='idle';st.seed=null;if($('analysisNotes'))$('analysisNotes').value='';clearHistory();resetResults();setCalibrationLabels();describeSelection();draw();status('Image analysis reset. Screenshot and numeric preferences retained; choose detection or tracing when ready.');}
+ function begin(mode){cancel();st.mode=mode;st.draft=[];draftBefore=mode==='cal'?capture():null;if(mode==='cal'){st.cal=[];resetResults();setCalibrationLabels();}if(mode==='poly'||mode==='exclude-poly')status((mode==='poly'?'Deposit boundary':'Exclusion outline')+': click vertices, then the start handle or Finish/Enter. Escape cancels this draft; Backspace removes its last vertex.');else if(mode==='freehand')status('Draw a closed exclusion. Release, inspect, then Finish. Simplification tolerance is 1.5 image pixels; invalid outlines remain editable drafts.');else if(mode==='cal')status('Click one Rhino end, then the opposite end. Escape restores the previous calibration.');else if(mode==='circle')status('Click an obstruction center. Radius is '+(metersPerPixel()?'metres':'image pixels until calibration')+'.');else status('Select an exclusion. Drag its body to move, a vertex to reshape, or a circle rim to resize. Alt-drag moves a small outline; arrow keys move the selection 1 px (Shift: 10 px).');draw();updateButtons();}
+ function cancel(){cancelDrag();if(draftBefore){const prior=draftBefore;draftBefore=null;restore(prior);}st.draft=[];st.mode='idle';drag=null;draw();updateButtons();status('Canceled only the unfinished drawing.');}
+ function boundary(points){validatePolygon(points);checkpoint();const mask=new Uint8Array(st.w*st.h);for(let y=0;y<st.h;y++)for(let x=0;x<st.w;x++)if(contains(points,{x:x+.5,y:y+.5}))mask[y*st.w+x]=1;st.baseMask=mask;st.legacyMask=false;st.poly=copy(points);rebuild();}
+ function finish(){try{if(st.mode==='poly')boundary(st.draft);else if(['exclude-poly','freehand'].includes(st.mode))addPolygon(st.draft,st.mode==='freehand'?'freehand':'polygon');else return false;st.draft=[];st.mode='idle';draw();updateButtons();status('Outline accepted. Existing exclusions and calibration retained. Recalculate the layout.');return true;}catch(e){status(e.message+' Draft retained. Undo the last vertex or cancel and redraw.','warn');return false;}}
+ function simplify(points,tolerance=FREEHAND_TOLERANCE){if(points.length<3)return points;let input=points;if(Math.hypot(input[0].x-input.at(-1).x,input[0].y-input.at(-1).y)<tolerance)input=input.slice(0,-1);const keep=new Set([0,input.length-1]),stack=[[0,input.length-1]];while(stack.length){const [a,b]=stack.pop();let d=tolerance,index=-1;for(let i=a+1;i<b;i++){const distance=segmentDistance(input[i],input[a],input[b]);if(distance>d){d=distance;index=i;}}if(index!==-1){keep.add(index);stack.push([a,index],[index,b]);}}return [...keep].sort((a,b)=>a-b).map(i=>({...input[i]}));}
+ function click(e){if(!st.img||locked)return;if(suppressClick){suppressClick=false;return;}const p=getXY(e);try{if(st.mode==='cal'){st.cal.push(p);resetResults();if(st.cal.length===2){if(!metersPerPixel()){status('Calibration is invalid; cancel and retry with a full Rhino length.','warn');return;}checkpoint(draftBefore);draftBefore=null;st.mode='idle';status('Scale calibrated. Pixel exclusion geometry is unchanged.');}else status('Click the opposite Rhino end.');setCalibrationLabels();describeSelection();}else if(['poly','exclude-poly','freehand'].includes(st.mode)){if(st.draft.length>=3&&Math.hypot(p.x-st.draft[0].x,p.y-st.draft[0].y)<=handleRadius())finish();else if(st.draft.length<MAX_VERTICES){st.draft.push(p);rigChanged();}else status('Draft reached 512 vertices. Finish or simplify the outline.','warn');}else if(st.mode==='seed'){st.mode='idle';detectPurple(p);}else if(st.mode==='circle'||st.mode==='exclude'){const radius=Number($('exclusionMeters').value)/(metersPerPixel()||1);addCircle(p,radius);st.mode='edit';status('Circle added. Drag its center/body or rim; Delete removes it.');}else if(st.mode==='edit'){const s=[...st.exclusions].reverse().find(s=>shapeContains(s,p));select(s?.id||null);}}catch(error){status(error.message,'warn');}draw();updateButtons();}
+ function handleRadius(){const rect=canvas.getBoundingClientRect();return Math.max(2,8*st.w/Math.max(1,rect.width));}
+ function pointerDown(e){if(!st.img||locked||e.button!==undefined&&e.button!==0)return;const p=getXY(e);if(st.mode==='freehand'){st.draft=[p];rigChanged();drag={kind:'freehand',pointer:e.pointerId};canvas.setPointerCapture?.(e.pointerId);e.preventDefault?.();return;}if(st.mode!=='edit')return;const radius=handleRadius();let s=selected(),handle=null;if(s?.type==='polygon'&&!e.altKey){const i=s.points.findIndex(v=>Math.hypot(p.x-v.x,p.y-v.y)<=radius);if(i>=0)handle={kind:'vertex',index:i};}else if(s?.type==='circle'){const distance=Math.hypot(p.x-s.x,p.y-s.y);if(distance<=Math.min(radius,s.radius/2))handle={kind:'move'};else if(Math.abs(distance-s.radius)<=radius&&!e.altKey)handle={kind:'radius'};}if(!handle){s=[...st.exclusions].reverse().find(s=>shapeContains(s,p));if(!s){select(null);return;}handle={kind:'move'};}select(s.id);drag={...handle,id:s.id,start:p,original:copy(s),before:capture(),pointer:e.pointerId,moved:false};canvas.setPointerCapture?.(e.pointerId);e.preventDefault?.();}
+ function pointerMove(e){if(!drag)return;const p=getXY(e);if(drag.kind==='freehand'){if(st.draft.length<4096&&Math.hypot(p.x-st.draft.at(-1).x,p.y-st.draft.at(-1).y)>=.5)st.draft.push(p);draw();return;}const s=copy(drag.original),dx=p.x-drag.start.x,dy=p.y-drag.start.y;if(drag.kind==='radius')s.radius=Math.hypot(p.x-s.x,p.y-s.y);else if(drag.kind==='vertex')s.points[drag.index]=p;else if(s.type==='circle'){s.x+=dx;s.y+=dy;}else s.points=s.points.map(v=>({x:v.x+dx,y:v.y+dy}));drag.preview=s;drag.moved=Math.abs(dx)+Math.abs(dy)>.01;const index=st.exclusions.findIndex(v=>v.id===s.id);st.exclusions[index]=s;if(drag.moved)resetResults();draw();}
+ function pointerUp(e){if(!drag)return;const d=drag;drag=null;canvas.releasePointerCapture?.(e.pointerId);if(d.kind==='freehand'){st.draft=simplify(st.draft);suppressClick=true;status('Freehand draft reduced at 1.5 px tolerance. Inspect it; Finish accepts, Escape cancels.');draw();updateButtons();return;}if(d.moved){suppressClick=true;try{validateShape(d.preview);if(st.baseMask)effectiveMask(st.baseMask,st.w,st.h,st.exclusions);checkpoint(d.before);rebuild();describeSelection();status('Exclusion updated. Recalculate the layout.');}catch(error){restore(d.before);status(error.message+' Original exclusion retained.','warn');}}else if(d.before)restore(d.before);else draw();updateButtons();}
+ function cancelDrag(){if(!drag)return;const d=drag;drag=null;try{canvas.releasePointerCapture?.(d.pointer);}catch{}if(d.before)restore(d.before);else{st.draft=[];draw();}updateButtons();}
+ function key(e){if(['INPUT','TEXTAREA','SELECT'].includes(e.target?.tagName))return;if(e.key==='Escape'){e.preventDefault();cancel();}else if(e.key==='Enter'){e.preventDefault();finish();}else if(e.key==='Backspace'){e.preventDefault();undo();}else if(e.key==='Delete'){e.preventDefault();deleteSelected();}else if(selected()&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const step=e.shiftKey?10:1;try{moveShape(st.selectedExclusion,e.key==='ArrowLeft'?-step:e.key==='ArrowRight'?step:0,e.key==='ArrowUp'?-step:e.key==='ArrowDown'?step:0);}catch(error){status(error.message,'warn');}}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redo():undo();}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault();redo();}}
+ return {begin,finish,cancel,undo,redo,deleteSelected,clearExclusions,resetBoundary,resetCalibration,clearLayout,resetAnalysis,select,setSelectedRadius,describeSelection,addCircle,addPolygon,moveShape,moveVertex,resizeCircle,validateShape,validatePolygon,contains,polygonDistance,segmentDistance,simplify,boundary,effectiveMask,rebuild,checkpoint,clearHistory,capture,restore,click,pointerDown,pointerMove,pointerUp,cancelDrag,key,canUndo:()=>past.length>0,canRedo:()=>future.length>0,historySize:()=>({count:past.length,bytes:historyBytes}),limits:{MAX_SHAPES,MAX_VERTICES,HISTORY_BYTES,HISTORY_COUNT,FREEHAND_TOLERANCE}};
+})();
+
+
+function* layoutSteps(marginM,metPerPx,spacingM,fine){const w=st.w,h=st.h,box=st.bbox;const sp=spacingM/metPerPx*1.000125;const dy=sp*Math.sqrt(3)/2;const stepM=fine?4:12,angleStep=fine?3:12,stepPx=stepM/metPerPx;const m=marginM/metPerPx;
+ if(!Number.isFinite(sp)||sp<3||sp>30000||!box)throw new Error('Invalid calibration/shape or spacing');let best=[],attempts=0,visited=0,exhausted=false;
+ const corners=[[box.minx,box.miny],[box.maxx,box.miny],[box.minx,box.maxy],[box.maxx,box.maxy]];
+ for(let deg=0;deg<60;deg+=angleStep){const a=deg*Math.PI/180,co=Math.cos(a),si=Math.sin(a),u=corners.map(p=>co*p[0]+si*p[1]),v=corners.map(p=>-si*p[0]+co*p[1]);const umin=Math.min(...u),umax=Math.max(...u),vmin=Math.min(...v),vmax=Math.max(...v);
+ for(let yi=0;yi<Math.ceil(spacingM*Math.sqrt(3)/2/stepM);yi++){const py=yi*stepPx;for(let xi=0;xi<Math.ceil(spacingM/stepM);xi++){const px=xi*stepPx;attempts++;const points=[];
+ for(let j=0;vmin+py+j*dy<=vmax+0.001;j++){const vr=vmin+py+j*dy,offset=(j&1)?sp/2:0;
+ for(let k=0;umin+px+offset+k*sp<=umax+0.001;k++){const ur=umin+px+offset+k*sp,x=co*ur-si*vr,y=si*ur+co*vr;
+ if(x<box.minx||x>box.maxx||y<box.miny||y>box.maxy)continue;
+ visited++;if(visited%4096===0)yield;
+ if(visited>st.workBudget){exhausted=true;break;}
+ if(insetCheck(x,y,m)){if(points.some(p=>Math.hypot(x-p.x,y-p.y)<sp-1e-8))continue;points.push({x,y});if(points.length>128)throw new Error('More than 128 geometric positions: layout exceeds the supported candidate limit');}
+ }if(exhausted)break;}if(points.length>best.length){best=points;}if(exhausted)break;}if(exhausted)break;}if(exhausted)break;}
+ best.sort((a,b)=>(a.y-b.y)||(a.x-b.x));best.forEach((p,i)=>p.n=i+1);
+ return{points:best,attempts,candidatesChecked:visited,complete:!exhausted,marginM,spacingM,search:fine?'3° / 4 m':'12° / 12 m'};}
+// Synchronous entry for a bounded calculation; the interactive path yields for cancellation.
+function layoutSolver(...args){const steps=layoutSteps(...args);let next;do{next=steps.next();}while(!next.done);return next.value;}
+async function interactiveLayout(epoch,...args){
+ const steps=layoutSteps(...args);
+ while(epoch===rigEpoch){
+  const next=steps.next();
+  if(next.done)return next.value;
+  await new Promise(resolve=>setTimeout(resolve,0));
+ }
+ throw new Error('Layout search canceled.');
+}
+function renderTable(){const s=st.result?.[st.scenario],mpp=metersPerPixel(),body=$('rigRows');body.replaceChildren();if(!s||!mpp)return;const origin=st.cal.length===2?{x:(st.cal[0].x+st.cal[1].x)/2,y:(st.cal[0].y+st.cal[1].y)/2}:{x:st.w/2,y:st.h/2};
+ for(const p of s.points){const tr=document.createElement('tr');for(const str of ['R'+p.n,p.x.toFixed(1),p.y.toFixed(1),((p.x-origin.x)*mpp).toFixed(1),((p.y-origin.y)*mpp).toFixed(1)]){const td=document.createElement('td');td.textContent=str;tr.appendChild(td);}body.appendChild(tr);}}
+function makePlan(selected='edge'){const mpp=metersPerPixel();if(!st.mask||!st.bbox){status('Trace a deposit boundary first.','warn');return;}if(!mpp){status('Calibrate using two Rhino endpoints and a valid reference length first.','warn');return;}
+ const spacing=invalidNumber('spacingMeters',30,300),margin=invalidNumber('marginMeters',0,50);if(spacing===null||margin===null){status('Spacing or inset input invalid.','error');return;}status('Calculating finite hex-grid candidates. No game placement is attempted...');$('plan').disabled=true;
+ const epoch=++rigEpoch;$('cancelRig').disabled=false;
+ setTimeout(async()=>{try{const fine=$('fine').checked,safe=await interactiveLayout(epoch,margin,mpp,spacing,fine),edge=await interactiveLayout(epoch,0,mpp,spacing,fine);
+ if(epoch!==rigEpoch)return;
+ if(edge.points.length<safe.points.length){edge.points=safe.points.map(p=>({...p}));edge.retainedConservative=true;}
+ st.result={safe,edge,mpp,spacing,referenceM:Number($('referenceMeters').value),referencePixels:Math.hypot(st.cal[1].x-st.cal[0].x,st.cal[1].y-st.cal[0].y),input:{format:st.source.detected_format||'image',width_px:st.w,height_px:st.h},maskArea:st.maskArea,bbox:st.bbox,calibrationLine:st.cal.map(p=>({...p})),method:'Finite hex grid with '+spacing+' m spacing; edge-allowed 0 m and optional '+margin+' m conservative inset',status:'EXPERIMENTAL_GEOMETRIC_LAYOUT'};
+ st.scenario=selected==='safe'?'safe':'edge';$('safeCount').textContent=safe.points.length;$('edgeCount').textContent=edge.points.length;$('searchSummary').textContent=(safe.complete&&edge.complete?'Finite search completed. ':'WORK BUDGET REACHED — PARTIAL search. ')+safe.attempts.toLocaleString()+' / '+edge.attempts.toLocaleString()+' layouts tested (inset/edge).'+(edge.retainedConservative?' Edge used conservative feasible fallback.':'');
+ status('Calculated a best-found candidate layout; inspect points and verify them through in-game deployment. This is not a maximum rig count.');rigChanged();renderSelection();updateButtons();renderTable();draw();}catch(err){if(epoch===rigEpoch){resetResults();status('Planner stopped: '+err.message,'error');draw();}}finally{$('cancelRig').disabled=true;updateButtons();}},15);}
+function saveBlob(content,name,type){const blob=content instanceof Blob?content:new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function sourceBase(){return 'rig-layout';}
+canvas.addEventListener('click',e=>Editor.click(e));
+canvas.addEventListener('pointerdown',e=>Editor.pointerDown(e));
+canvas.addEventListener('pointermove',e=>Editor.pointerMove(e));
+canvas.addEventListener('pointerup',e=>Editor.pointerUp(e));
+canvas.addEventListener('pointercancel',()=>Editor.cancelDrag());
+canvas.addEventListener('keydown',e=>Editor.key(e));
+$('auto').addEventListener('click',()=>detectPurple(null));
+$('seed').addEventListener('click',()=>{resetResults();Editor.cancel();st.mode='seed';status('Click inside the desired purple region.');});
+$('polygon').addEventListener('click',()=>Editor.begin('poly'));
+$('undo').addEventListener('click',()=>Editor.undo());$('finish').addEventListener('click',()=>Editor.finish());
+$('calibrate').addEventListener('click',()=>Editor.begin('cal'));
+$('resetScale').addEventListener('click',()=>Editor.resetCalibration());
+$('exclude').addEventListener('click',()=>Editor.begin('circle'));
+for(const [id,fn] of Object.entries({redo:()=>Editor.redo(),cancelDrawing:()=>Editor.cancel(),excludePolygon:()=>Editor.begin('exclude-poly'),excludeFreehand:()=>Editor.begin('freehand'),editExclusions:()=>Editor.begin('edit'),deleteExclusion:()=>Editor.deleteSelected(),clearExclusions:()=>Editor.clearExclusions(),resetBoundary:()=>Editor.resetBoundary()}))if($(id))$(id).addEventListener('click',fn);
+$('clearResult').addEventListener('click',()=>Editor.clearLayout());
+$('threshold').addEventListener('input',()=>{$('thresholdLabel').textContent=$('threshold').value;rigChanged();});
+$('referenceMeters').addEventListener('input',()=>{resetResults();setCalibrationLabels();Editor.describeSelection();draw();});
+for(const id of ['spacingMeters','marginMeters'])$(id).addEventListener('input',()=>{resetResults();draw();});
+$('fine').addEventListener('change',()=>{resetResults();draw();});$('plan').addEventListener('click',()=>makePlan());
+for(const id of ['referenceMeters','spacingMeters','marginMeters']){let before=null;$(id).addEventListener('focus',()=>{before=Editor.capture();});$(id).addEventListener('change',()=>{if(before){Editor.checkpoint(before);before=null;updateButtons();}});$(id).addEventListener('blur',()=>{before=null;});}
+if($('circleRadius'))$('circleRadius').addEventListener('change',()=>Editor.setSelectedRadius());
+function selectedLayout(){return st.result?.[st.scenario]||null;}
+function renderSelection(){
+ const s=selectedLayout(),edge=st.scenario==='edge',inset=edge?0:Number($('marginMeters').value);
+ $('selectedMode').textContent=edge?'EDGE-ALLOWED — 0 m boundary inset':'CONSERVATIVE — '+inset+' m boundary inset';
+ $('primaryCount').textContent=s?s.points.length:'—';
+ $('selectedAssumptions').textContent='Minimum center spacing: '+$('spacingMeters').value+' m. Selected additional inset: '+inset+' m.';
+ $('toggleMargin').textContent=edge?'CONSERVATIVE — optional comparison':'EDGE-ALLOWED — 0 m (default)';
+}
+$('toggleMargin').addEventListener('click',()=>{st.scenario=st.scenario==='safe'?'edge':'safe';rigChanged();renderSelection();renderTable();draw();});
+function exportCanvas(snapshot=exportSnapshot()){
+ const out=document.createElement('canvas');out.width=Math.max(900,st.w);out.height=st.h+112;const c=out.getContext('2d');
+ c.fillStyle='#102025';c.fillRect(0,0,out.width,out.height);c.drawImage(canvas,0,0);
+ c.fillStyle='#fff';c.font='bold '+Math.max(12,Math.min(22,st.w/42))+'px Arial';c.textAlign='left';
+ const s=snapshot.selected,label=snapshot.scenario==='edge'?'EDGE-ALLOWED':'CONSERVATIVE';
+ c.fillText(label+' | '+s.points.length+' candidate centers | inset '+s.marginM+' m',12,st.h+28);
+ c.font=Math.max(10,Math.min(16,st.w/55))+'px Arial';
+ c.fillText('Spacing '+s.spacingM+' m | provisional reference '+snapshot.result.referenceM+' m',12,st.h+55);
+ c.fillText('Geometric estimate. Check in game. Not verified deployable or maximum capacity.',12,st.h+82);
+ return out;
+}
+function candidateCsv(snapshot=exportSnapshot()){
+ const s=snapshot?.selected;if(!s)return '';
+ const line=snapshot.result.calibrationLine,o={x:(line[0].x+line[1].x)/2,y:(line[0].y+line[1].y)/2};
+ const rows=['candidate,image_x_px,image_y_px,right_from_reference_m,down_from_reference_m,scenario,boundary_inset_m,minimum_spacing_m,qualification'];
+ for(const p of s.points)rows.push([p.n,p.x.toFixed(6),p.y.toFixed(6),((p.x-o.x)*snapshot.result.mpp).toFixed(6),((p.y-o.y)*snapshot.result.mpp).toFixed(6),snapshot.scenario==='edge'?'EDGE-ALLOWED':'CONSERVATIVE',s.marginM,s.spacingM,'Geometric estimate; unverified deployment'].join(','));
+ return rows.join('\r\n')+'\r\n';
+}
+function exportSnapshot(){if(!st.result)return null;const result=JSON.parse(JSON.stringify(st.result)),scenario=st.scenario;return {result,scenario,selected:result[scenario]};}
+$('savePng').addEventListener('click',()=>{if(!st.result)return;const snapshot=exportSnapshot(),output=exportCanvas(snapshot);output.toBlob(async b=>{try{if(!b)throw Error('PNG encoding failed.');const clean=await cleanPng(b);saveBlob(clean,sourceBase()+'-annotated-'+snapshot.scenario+'.png','image/png');}catch(e){status('PNG export stopped: '+e.message,'error');}},'image/png');});
+$('saveCsv').addEventListener('click',()=>{const snapshot=exportSnapshot();if(snapshot)saveBlob(candidateCsv(snapshot),sourceBase()+'-'+snapshot.scenario+'-candidates.csv','text/csv');});
+$('saveJson').addEventListener('click',()=>{const snapshot=exportSnapshot();if(!snapshot)return;saveBlob(JSON.stringify({...snapshot.result,activeScenario:snapshot.scenario,qualification:'Geometric estimate; no verified deployment or maximum capacity'},null,2),sourceBase()+'-'+snapshot.scenario+'-layout.json','application/json');});
+$('printLayout').addEventListener('click',()=>{if(st.result)window.print();});
+ctx.fillStyle='#13282b';ctx.fillRect(0,0,900,500);ctx.fillStyle='#b8c8c7';ctx.font='22px system-ui';ctx.textAlign='center';ctx.fillText('Choose a local image above',450,240);
+</script>
+<script>
+'use strict';
+// Keep encoded pixels unchanged. Validate the PNG container, then copy only
+// image data and this fixed-format color/transparency allowlist (PNG 3).
+const PngExport = (() => {
+ const MAX_BYTES=96*1024*1024, MAX_CHUNKS=16384;
+ const signature=[137,80,78,71,13,10,26,10];
+ const allowed=new Set(['IHDR','PLTE','IDAT','IEND','tRNS','gAMA','cHRM','sRGB','sBIT','cICP','mDCV','cLLI']);
+ const table=new Uint32Array(256);
+ for(let i=0;i<256;i++){let c=i;for(let j=0;j<8;j++)c=(c&1)?0xedb88320^(c>>>1):c>>>1;table[i]=c>>>0;}
+ function fail(message){throw Error('PNG export was not saved: '+message);}
+ function crc(bytes,start,end){let c=0xffffffff;for(let i=start;i<end;i++)c=table[(c^bytes[i])&255]^(c>>>8);return (c^0xffffffff)>>>0;}
+ function sanitize(input){
+  const source=input instanceof ArrayBuffer?new Uint8Array(input):ArrayBuffer.isView(input)?new Uint8Array(input.buffer,input.byteOffset,input.byteLength):null;
+  if(!source||source.length<45||source.length>MAX_BYTES)fail('invalid or oversized image.');
+  // Own the input throughout parsing, including callers that reuse their buffers.
+  const bytes=new Uint8Array(source),view=new DataView(bytes.buffer);
+  if(!signature.every((b,i)=>bytes[i]===b))fail('invalid image signature.');
+  const parts=[bytes.subarray(0,8)],seen=new Set();
+  let pos=8,count=0,total=8,color,depth,palette=0,idat=false,idatEnded=false,ended=false,dataSize=0;
+  const beforePixels=()=>{if(idat||palette)fail('color information is out of order.');};
+  while(pos<bytes.length){
+   if(++count>MAX_CHUNKS||pos+12>bytes.length)fail('invalid chunk count or truncated image.');
+   const length=view.getUint32(pos),end=pos+12+length;
+   if(length>0x7fffffff||end>bytes.length)fail('invalid chunk length.');
+   const type=String.fromCharCode(...bytes.subarray(pos+4,pos+8)),start=pos+8;
+   if(!/^[A-Za-z]{4}$/.test(type)||type[2]!==type[2].toUpperCase())fail('invalid chunk type.');
+   if(crc(bytes,pos+4,start+length)!==view.getUint32(start+length))fail('image checksum failed.');
+   if(count===1&&type!=='IHDR')fail('missing image header.');
+   if(type!=='IDAT'&&idat)idatEnded=true;
+   if(type!=='IDAT'&&seen.has(type)&&allowed.has(type))fail('duplicate image chunk.');
+   if(type==='IHDR'){
+    if(count!==1||length!==13)fail('invalid image header.');
+    const width=view.getUint32(start),height=view.getUint32(start+4);
+    depth=bytes[start+8];color=bytes[start+9];
+    const depths={0:[1,2,4,8,16],2:[8,16],3:[1,2,4,8],4:[8,16],6:[8,16]};
+    if(!width||!height||width>25000||height>25000||width*height>130000000||!depths[color]?.includes(depth)||bytes[start+10]!==0||bytes[start+11]!==0||bytes[start+12]>1)fail('unsupported image header.');
+   }else if(type==='PLTE'){
+    if(idat||seen.has('tRNS')||[0,4].includes(color)||length===0||length>768||length%3)fail('invalid palette.');
+    palette=length/3;if(color===3&&palette>2**depth)fail('palette exceeds sample depth.');
+   }else if(type==='IDAT'){
+    if(idatEnded||(color===3&&!palette))fail('image data is out of order.');
+    idat=true;dataSize+=length;
+   }else if(type==='IEND'){
+    if(length!==0||!idat||!dataSize||end!==bytes.length)fail('invalid image ending.');
+    ended=true;
+   }else if(type==='tRNS'){
+    if(idat||[4,6].includes(color)||(color===0&&length!==2)||(color===2&&length!==6)||(color===3&&(!palette||!length||length>palette)))fail('invalid transparency.');
+    if(color===0&&view.getUint16(start)>2**depth-1)fail('invalid transparency sample.');
+    if(color===2&&[0,2,4].some(i=>view.getUint16(start+i)>2**depth-1))fail('invalid transparency sample.');
+   }else if(type==='gAMA'){
+    beforePixels();if(length!==4||view.getUint32(start)===0)fail('invalid gamma.');
+   }else if(type==='cHRM'){
+    beforePixels();if(length!==32)fail('invalid chromaticities.');
+   }else if(type==='sRGB'){
+    beforePixels();if(length!==1||bytes[start]>3)fail('invalid color rendering intent.');
+   }else if(type==='sBIT'){
+    beforePixels();const n={0:1,2:3,3:3,4:2,6:4}[color],max=color===3?8:depth;
+    if(length!==n||Array.from(bytes.subarray(start,start+length)).some(b=>b===0||b>max))fail('invalid significant bits.');
+   }else if(['cICP','mDCV','cLLI'].includes(type)){
+    beforePixels();if(length!==({cICP:4,mDCV:24,cLLI:8}[type]))fail('invalid color information.');
+    if(type==='cICP'&&(bytes[start+2]!==0||bytes[start+3]>1))fail('unsupported color matrix.');
+   }else if(type==='iCCP'){
+    // An arbitrary profile may contain descriptive text. Do not retain that
+    // text or silently discard the profile and change color interpretation.
+    fail('embedded color profiles are unsupported; use a standard RGB canvas export.');
+   }else if(['acTL','fcTL','fdAT'].includes(type)){
+    fail('animated images are unsupported.');
+   }else if(type[0]===type[0].toUpperCase())fail('unsupported critical image chunk.');
+   if(allowed.has(type)){parts.push(bytes.subarray(pos,end));total+=end-pos;}
+   seen.add(type);pos=end;
+  }
+  if(!ended)fail('missing image ending.');
+  const output=new Uint8Array(total);let offset=0;for(const part of parts){output.set(part,offset);offset+=part.length;}
+  return output;
+ }
+ async function clean(blob){
+  if(!blob||typeof blob.arrayBuffer!=='function'||!Number.isFinite(blob.size)||blob.size<45||blob.size>MAX_BYTES)fail('invalid or oversized encoded image.');
+  return new Blob([sanitize(await blob.arrayBuffer())],{type:'image/png'});
+ }
+ return Object.freeze({sanitize,clean,allowed:Object.freeze([...allowed]),maxBytes:MAX_BYTES});
+})();
+async function cleanPng(blob){return PngExport.clean(blob);}
+</script>
+<script>
+const Rig = (() => {
+ const limits={referenceMeters:[1,50],spacingMeters:[30,300],marginMeters:[0,50],exclusionMeters:[1,100],threshold:[8,32]};
+ const defaults={referenceMeters:12.24,spacingMeters:80,marginMeters:5,exclusionMeters:12,threshold:16,fine:true};
+ const plain=o=>!!o&&typeof o==='object'&&!Array.isArray(o);
+ function keys(o,allowed){if(!plain(o)||Object.keys(o).some(k=>!allowed.includes(k)))throw Error('Unrecognized project field.');}
+ function settings(){const values={fine:$('fine').checked};for(const key of Object.keys(limits))values[key]=Number($(key).value);return values;}
+ function validateSettings(s){
+  keys(s,[...Object.keys(limits),'fine']);if(typeof s.fine!=='boolean')throw Error('Invalid search setting.');
+  for(const [key,[lo,hi]] of Object.entries(limits))if(!Number.isFinite(s[key])||s[key]<lo||s[key]>hi)throw Error('Invalid rig setting: '+key);
+ }
+ function setSettings(s){validateSettings(s);for(const [k,v] of Object.entries(s)){if(k==='fine')$(k).checked=v;else $(k).value=v;}$('thresholdLabel').textContent=s.threshold;}
+ function pack(mask){if(!mask)return null;const bytes=new Uint8Array(Math.ceil(mask.length/8));mask.forEach((v,i)=>{if(v)bytes[i>>3]|=1<<(i&7);});let text='';for(let i=0;i<bytes.length;i+=8192)text+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(text);}
+ function unpack(text,width,height){if(text===null)return null;const bytes=atob(text),mask=new Uint8Array(width*height);for(let i=0;i<mask.length;i++)mask[i]=(bytes.charCodeAt(i>>3)>>(i&7))&1;return mask;}
+ function snapshot(){return {width:st.img?st.w:0,height:st.img?st.h:0,settings:settings(),baseMask:pack(st.baseMask),mask:pack(st.mask),legacyMask:!!st.legacyMask,cal:st.cal.map(p=>({...p})),poly:st.poly.map(p=>({...p})),exclusions:JSON.parse(JSON.stringify(st.exclusions)),selected:st.scenario};}
+ function validMask(text,r){if(text!==null&&(typeof text!=='string'||!r.width||text.length!==4*Math.ceil(Math.ceil(r.width*r.height/8)/3)||!/^[a-zA-Z0-9+/]*={0,2}$/.test(text)||atob(text).length!==Math.ceil(r.width*r.height/8)))throw Error('Invalid saved rig mask.');}
+ function validate(r,version=2){
+  keys(r,version===1?['width','height','settings','mask','cal','poly','exclusions','selected']:['width','height','settings','baseMask','mask','legacyMask','cal','poly','exclusions','selected']);
+  if(!Number.isInteger(r.width)||!Number.isInteger(r.height)||r.width<0||r.height<0||r.width>2048||r.height>2048||((r.width===0)!==(r.height===0)))throw Error('Invalid saved rig dimensions.');
+  validateSettings(r.settings);
+  if(r.selected!==undefined&&!['edge','safe'].includes(r.selected))throw Error('Invalid selected layout.');
+  validMask(r.mask,r);
+  if(version===2){validMask(r.baseMask,r);if(typeof r.legacyMask!=='boolean')throw Error('Invalid mask migration flag.');if((r.baseMask===null)!==(r.mask===null))throw Error('Missing base or usable mask.');}
+  for(const [key,max] of [['cal',2],['poly',version===1||r.legacyMask?10000:512]]){
+   if(!Array.isArray(r[key])||r[key].length>max||(!r.width&&r[key].length))throw Error('Invalid rig points.');
+   for(const p of r[key]){keys(p,['x','y']);if(!Number.isFinite(p.x)||!Number.isFinite(p.y)||p.x<0||p.x>r.width||p.y<0||p.y>r.height)throw Error('Invalid saved rig geometry.');}
+  }
+  if(!Array.isArray(r.exclusions)||r.exclusions.length>(version===1?10000:128)||!r.width&&r.exclusions.length)throw Error('Invalid exclusion count.');
+  if(version===1){for(const p of r.exclusions){keys(p,['x','y','radius']);if(!Number.isFinite(p.x)||!Number.isFinite(p.y)||p.x<0||p.x>r.width||p.y<0||p.y>r.height||!Number.isFinite(p.radius)||p.radius<=0||p.radius>20000)throw Error('Invalid older exclusion geometry.');}}
+  else{const ids=new Set();for(const p of r.exclusions){keys(p,p.type==='circle'?['id','type','x','y','radius']:['id','type','kind','points','tolerancePx']);if(p.type==='polygon')for(const v of p.points||[])keys(v,['x','y']);Editor.validateShape(p);if(ids.has(p.id))throw Error('Duplicate exclusion identity.');ids.add(p.id);}if(r.baseMask){const base=unpack(r.baseMask,r.width,r.height),mask=unpack(r.mask,r.width,r.height);for(let i=0;i<mask.length;i++)if(mask[i]&&!base[i])throw Error('Usable mask exceeds its base boundary.');const expected=Editor.effectiveMask(base,r.width,r.height,r.exclusions);for(let i=0;i<mask.length;i++)if(mask[i]!==expected[i])throw Error('Saved exclusions contradict the usable mask.');}}
+  if(r.cal.length===2){const pixels=Math.hypot(r.cal[0].x-r.cal[1].x,r.cal[0].y-r.cal[1].y),mpp=r.settings.referenceMeters/pixels;if(pixels<8||mpp<.005||mpp>10)throw Error('Invalid calibration scale.');}
+ }
+ function migrate(r){validate(r,1);if(r.exclusions.length>128)throw Error('Older project has more than 128 circles; retain it and simplify before migration.');const out=JSON.parse(JSON.stringify(r));out.baseMask=r.mask;out.legacyMask=!!r.mask;out.exclusions=r.exclusions.map((s,i)=>({id:'ex-legacy-'+(i+1),type:'circle',...s}));out.selected=out.selected||'edge';if(out.baseMask)out.mask=pack(Editor.effectiveMask(unpack(out.baseMask,out.width,out.height),out.width,out.height,out.exclusions));return out;}
+ function apply(r){
+  validate(r);if(st.w!==r.width||st.h!==r.height)throw Error('Image dimensions do not match saved markings.');
+  resetResults();Editor.clearHistory();st.mask=null;st.bbox=null;st.maskArea=0;setSettings(r.settings);st.cal=r.cal.map(p=>({...p}));st.poly=r.poly.map(p=>({...p}));st.exclusions=JSON.parse(JSON.stringify(r.exclusions));st.baseMask=unpack(r.baseMask,st.w,st.h);st.legacyMask=r.legacyMask;st.selectedExclusion=null;st.draft=[];st.mode='idle';Editor.rebuild();
+  st.scenario=r.selected||'edge';setCalibrationLabels();renderSelection();Editor.describeSelection();draw();
+ }
+ function parse(text,legacy=false){
+  if(typeof text!=='string'||text.length>2*1024*1024)throw Error('Project exceeds 2 MB limit.');
+  const p=JSON.parse(text,(k,v)=>{if(['__proto__','prototype','constructor'].includes(k))throw Error('Unsafe project key.');return v;});
+  if(legacy){
+   if(p?.schema!=='surface-mining-project'||p.version!==1||!p.rig)throw Error('No supported older rig markings found.');
+   // Extract this one approved record; none of the surrounding workbook is retained.
+   const rig=p.rig.baseMask!==undefined?(validate(p.rig),JSON.parse(JSON.stringify(p.rig))):migrate(p.rig);rig.selected=rig.selected||'edge';
+   return {schema:'rig-layout-project',version:2,image:null,rig,notes:'',calculation:null,legacy:true};
+  }
+  keys(p,['schema','version','image','rig','notes','calculation']);
+  if(p.schema!=='rig-layout-project'||![1,2].includes(p.version))throw Error('Unsupported rig project version. Current work is unchanged.');
+  if(p.version===1){p.rig=migrate(p.rig);p.version=2;p.calculation=null;}else validate(p.rig);
+  if(typeof p.notes!=='string'||p.notes.length>4000)throw Error('Invalid project notes.');
+  if(p.image!==null){
+   keys(p.image,['sha256','width','height','workingWidth','workingHeight']);
+   if(!/^[a-f0-9]{64}$/.test(p.image.sha256)||!Number.isInteger(p.image.width)||!Number.isInteger(p.image.height)||p.image.width<=0||p.image.height<=0||Math.max(p.image.width,p.image.height)>25000||p.image.width*p.image.height>130000000||p.image.workingWidth!==p.rig.width||p.image.workingHeight!==p.rig.height)throw Error('Invalid screenshot identity or dimensions.');
+  }else if(p.rig.width)throw Error('Saved markings require an image fingerprint. Use the explicit older-project import for old files.');
+  if(p.calculation!==null){
+   keys(p.calculation,['id','edgeCount','conservativeCount','complete']);
+   if(!/^layout-[a-f0-9]{64}$/.test(p.calculation.id)||![p.calculation.edgeCount,p.calculation.conservativeCount].every(n=>Number.isInteger(n)&&n>=0&&n<=128)||typeof p.calculation.complete!=='boolean'||!p.rig.mask||p.rig.cal.length!==2)throw Error('Invalid calculation receipt.');
+  }
+  return p;
+ }
+ async function hash(bytes){const out=await crypto.subtle.digest('SHA-256',bytes);return Array.from(new Uint8Array(out),b=>b.toString(16).padStart(2,'0')).join('');}
+ async function receipt(image,rig,result){
+  if(!result)return null;
+  const id=await hash(new TextEncoder().encode(JSON.stringify({image,rig,edge:result.edge,safe:result.safe})));
+  return {id:'layout-'+id,edgeCount:result.edge.points.length,conservativeCount:result.safe.points.length,complete:result.edge.complete&&result.safe.complete};
+ }
+ return {settings,defaults,validateSettings,setSettings,snapshot,validate,apply,parse,hash,receipt,pack,unpack,migrate};
+})();
+</script>
+<script>
+const App = (() => {
+ let dirty=false,revision=0,suppress=false,pending=null,imageIdentity=null,currentId=null,busy=false,stopped=false;
+ let bridge=null,queue=null,polling=false,lastFolder=null,preferencesLoaded=false,preferenceWrites=Promise.resolve();
+ let sourceEpoch=0,folderEpoch=0,stateEpoch=0,userTouched=false,connected=false,currentItem=null,autoOpened=false;
+ function syncPendingSettings(){
+  if(!pending)return false;
+  const current=Rig.settings();
+  if(Object.keys(Rig.defaults).every(k=>pending.rig.settings[k]===current[k]))return false;
+  pending.rig.settings=current;pending.rig.selected='edge';pending.calculation=null;return true;
+ }
+ function mark(){if(!suppress){syncPendingSettings();dirty=true;revision++;sourceEpoch++;userTouched=true;$('saveStatus').textContent='Unsaved analysis';}}
+ rigChanged=mark;
+ function clean(){dirty=false;$('saveStatus').textContent='Project saved / unchanged';}
+ function preferences(){
+  const values=Rig.settings();try{Rig.validateSettings(values);}catch{return;}
+  try{localStorage.setItem('rig-planner-preferences-v1',JSON.stringify(values));}
+  catch{$('saveStatus').textContent=dirty?'Unsaved analysis · browser preferences unavailable':'Browser preferences unavailable; Save project works.';}
+  if(bridge&&!stopped)preferenceWrites=preferenceWrites.then(()=>api('preferences',{preferences:values})).catch(e=>{$('saveStatus').textContent='Preferences were not saved: '+e.message+'. Current analysis is retained.';});
+ }
+ try{const p=localStorage.getItem('rig-planner-preferences-v1');if(p){const s=JSON.parse(p);Rig.validateSettings(s);Rig.setSettings(s);}}catch{}
+ for(const id of ['referenceMeters','spacingMeters','marginMeters','exclusionMeters','threshold','fine'])$(id).addEventListener('change',()=>{mark();preferences();renderSelection();});
+ $('analysisNotes').addEventListener('input',mark);
+ function working(img,meta){
+  const w=meta.sourceWidth||img.naturalWidth,h=meta.sourceHeight||img.naturalHeight;
+  if(meta.detected_format==='bmp'){const factor=Math.max(1,Math.ceil(Math.max(w,h)/2048));return {width:Math.ceil(w/factor),height:Math.ceil(h/factor)};}
+  const scale=Math.min(1,2048/Math.max(img.naturalWidth,img.naturalHeight));return {width:Math.max(1,Math.round(img.naturalWidth*scale)),height:Math.max(1,Math.round(img.naturalHeight*scale))};
+ }
+ function decode(dataUrl){
+  return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{if(!img.naturalWidth||!img.naturalHeight||Math.max(img.naturalWidth,img.naturalHeight)>25000||img.naturalWidth*img.naturalHeight>130000000){reject(Error('Image dimensions exceed supported bounds.'));return;}resolve(img);};img.onerror=()=>reject(Error('Image is incomplete, corrupt or not supported by this browser.'));img.src=dataUrl;});
+ }
+ async function projectText(){
+  if(st.draft.length||st.mode==='cal'&&st.cal.length!==2)throw Error('Finish or cancel the current drawing before saving. Discard and Cancel remain available.');
+  syncPendingSettings();
+  const rig=pending?JSON.parse(JSON.stringify(pending.rig)):Rig.snapshot();
+  const image=pending?pending.image:imageIdentity,notes=$('analysisNotes').value;
+  if(pending?.legacy)throw Error('Reconnect and confirm the original screenshot before saving migrated markings.');
+  if(rig.width&&!image)throw Error('Reselect the screenshot to establish its content fingerprint before saving.');
+  const calculation=pending?pending.calculation:await Rig.receipt(image,rig,st.result);
+  const p={schema:'rig-layout-project',version:2,image,rig,notes,calculation};const text=JSON.stringify(p,null,2);
+  Rig.parse(text);return text;
+ }
+ async function save(){
+  const rev=revision,text=await projectText();saveBlob(text,'rig-project.json','application/json');
+  if(revision===rev)clean();return text;
+ }
+ function guard(){
+  if(!dirty)return Promise.resolve(true);
+  return new Promise(resolve=>{
+   const dialog=$('unsavedDialog');
+   const finish=value=>{dialog.close();for(const id of ['saveAndContinue','discardAndContinue','cancelReplace'])$(id).onclick=null;dialog.oncancel=null;resolve(value);};
+   $('saveAndContinue').onclick=async()=>{try{await save();finish(true);}catch(e){status(e.message,'error');finish(false);}};
+   $('discardAndContinue').onclick=()=>finish(true);
+   $('cancelReplace').onclick=()=>finish(false);
+   dialog.oncancel=e=>{e.preventDefault();finish(false);};dialog.showModal();
+  });
+ }
+ function resetView(){suppress=true;resetResults();Object.assign(st,{img:null,base:null,w:0,h:0,mask:null,baseMask:null,legacyMask:false,bbox:null,maskArea:0,cal:[],poly:[],exclusions:[],draft:[],selectedExclusion:null,mode:'idle',source:{},scenario:'edge'});Editor.clearHistory();ctx.clearRect(0,0,canvas.width,canvas.height);setEnabled(false);setCalibrationLabels();renderSelection();suppress=false;imageIdentity=null;currentId=null;currentItem=null;$('sourceTag').textContent='No screenshot loaded';}
+ async function openText(text,legacy=false){
+  const candidate=Rig.parse(text,legacy); // Validate before changing the current session.
+  userTouched=true;sourceEpoch++;
+  if(!await guard())return false;
+  const same=candidate.image&&imageIdentity&&sameImage(candidate.image,imageIdentity);
+  clean();pending=candidate;suppress=true;Rig.setSettings(candidate.rig.settings);$('analysisNotes').value=candidate.notes;suppress=false;
+  if(same){await restore();return true;}
+  resetView();pending=candidate.rig.width?candidate:null;$('cancelRestore').hidden=!pending;
+  clean();status(legacy?'Older rig markings selected. Choose the original image and explicitly confirm it; older files have no content fingerprint.':'Project opened. Reselect the original screenshot; content fingerprint and dimensions must match.');return true;
+ }
+ async function restore(){
+  syncPendingSettings();
+  const p=pending;if(!p)return;const unsaved=dirty;
+  suppress=true;Rig.apply(p.rig);pending=null;$('cancelRestore').hidden=true;imageIdentity={...imageIdentity};suppress=false;
+  if(unsaved||p.legacy)mark();else clean();
+  if(p.legacy){status('Older rig markings imported. Inspect the image and save a new rig-only project.');}
+  else status('Matching screenshot verified. Markings restored; saved calculations are recalculated from the preserved inputs.');
+  if(p.calculation)makePlan(p.rig.selected||'edge');
+ }
+ function sameImage(a,b){return ['sha256','width','height','workingWidth','workingHeight'].every(k=>a[k]===b[k]);}
+ async function acceptImage(img,meta,id=null,ticket=null){
+  if(ticket!==null&&ticket!==sourceEpoch)return false;
+  const dim=working(img,meta),identity={sha256:meta.sha256,width:meta.sourceWidth||img.naturalWidth,height:meta.sourceHeight||img.naturalHeight,workingWidth:dim.width,workingHeight:dim.height};
+  if(pending){
+   if(pending.rig.width!==dim.width||pending.rig.height!==dim.height)throw Error('Image dimensions do not match the saved markings. Current project is unchanged.');
+   if(pending.image&&!sameImage(pending.image,identity))throw Error('Screenshot content fingerprint does not match this project. Reselect the original image.');
+   if(pending.legacy&&!window.confirm('This older project has no image fingerprint. Confirm this is the original screenshot with the same view and dimensions. Import only its rig markings?'))return false;
+  }else if(!await guard())return false;
+  if(ticket!==null&&ticket!==sourceEpoch)return false;
+  const restoring=!!pending;suppress=true;
+  installImage(img,{...meta,workingWidth:dim.width,workingHeight:dim.height});
+  imageIdentity=identity;currentId=id;currentItem=queue?.images.find(i=>i.id===id)||null;$('zoom').value='100';canvas.style.width='100%';
+  if(!restoring)$('analysisNotes').value='';suppress=false;
+  if(restoring)await restore();else{clean();detectPurple(null);status(st.mask?'Purple region detected. Inspect the mask and calibrate this image before calculating.':'No reliable purple region found. Choose a region or draw a manual boundary.','warn');}
+  return true;
+ }
+ async function manualFile(file){
+  if(!file)return false;if(file.size>80*1024*1024)throw Error('Manual image exceeds 80 MB. Use the Windows launcher for large BMP conversion.');
+  userTouched=true;const ticket=++sourceEpoch;
+  const bytes=await file.arrayBuffer(),mime=kind(new Uint8Array(bytes,0,Math.min(16,bytes.byteLength)));
+  if(!mime)throw Error('Unrecognized image content.');
+  const url=URL.createObjectURL(new Blob([bytes],{type:mime}));
+  try{const img=await decode(url),sha256=await Rig.hash(bytes);return await acceptImage(img,{sha256,source_file_name:file.name,detected_format:mime.slice(6),sourceWidth:img.naturalWidth,sourceHeight:img.naturalHeight},null,ticket);}
+  finally{URL.revokeObjectURL(url);}
+ }
+ async function action(fn){
+  if(busy){status('Finish the current source action first.','warn');return;}
+  busy=true;renderQueue();
+  try{return await fn();}catch(e){status(e.message,'error');return false;}finally{busy=false;renderQueue();}
+ }
+ $('newFile').addEventListener('change',e=>{const f=e.target.files?.[0];if(f)action(()=>manualFile(f));e.target.value='';});
+ $('saveProject').addEventListener('click',()=>action(save));
+ $('openProject').addEventListener('click',()=>{if(!busy){userTouched=true;sourceEpoch++;$('projectFile').click();}});
+ $('importRig').addEventListener('click',()=>{if(!busy){userTouched=true;sourceEpoch++;$('legacyFile').click();}});
+ for(const [id,legacy] of [['projectFile',false],['legacyFile',true]])$(id).addEventListener('change',e=>{const file=e.target.files?.[0];if(file)action(async()=>{if(file.size>2*1024*1024)throw Error('Project exceeds 2 MB limit.');return openText(await file.text(),legacy);});e.target.value='';});
+ $('cancelRestore').addEventListener('click',()=>action(async()=>{if(!await guard())return;pending=null;$('cancelRestore').hidden=true;resetView();clean();status('Project reopen canceled. Choose a screenshot.');}));
+ $('zoom').addEventListener('input',()=>{canvas.style.width=$('zoom').value+'%';});
+ $('fitImage').addEventListener('click',()=>{$('zoom').value='100';canvas.style.width='100%';});
+ $('resetAnalysis').addEventListener('click',()=>action(async()=>{userTouched=true;sourceEpoch++;if(!st.img||!await guard())return false;if(!window.confirm('Reset this image analysis? Boundary, exclusions, calibration, layout, notes and undo history will be cleared. The screenshot and numeric preferences stay.'))return false;pending=null;$('cancelRestore').hidden=true;Editor.resetAnalysis();$('analysisNotes').value='';mark();return true;}));
+ window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
+ async function api(path,data){
+  if(!bridge||stopped)throw Error('Local companion is not connected.');
+  const options={method:data===undefined?'GET':'POST',headers:{'X-Rig-Token':bridge},credentials:'omit',cache:'no-store'};
+  if(data!==undefined){options.headers['Content-Type']='application/json';options.body=JSON.stringify(data);}
+  const response=await fetch('/api/'+path,options),value=await response.json();
+  if(!response.ok)throw Error(value.error||'Local screenshot request refused.');return value;
+ }
+ function ready(){return queue?.images.filter(i=>i.state==='ready')||[];}
+ function compare(a,b){return (a.mtimeNs-b.mtimeNs)||((a.name||'').toLowerCase()<(b.name||'').toLowerCase()?-1:(a.name||'').toLowerCase()>(b.name||'').toLowerCase()?1:0)||((a.name||'')<(b.name||'')?-1:(a.name||'')>(b.name||'')?1:0)||(a.id<b.id?-1:a.id>b.id?1:0);}
+ function neighbor(direction){
+  const items=ready(),index=items.findIndex(i=>i.id===currentId);
+  if(index>=0)return items[index+direction]?.id||null;
+  if(currentItem){const matches=items.filter(i=>direction<0?compare(i,currentItem)<0:compare(i,currentItem)>0);return (direction<0?matches.at(-1):matches[0])?.id||null;}
+  return null;
+ }
+ function localTime(item){return Number.isFinite(item.mtimeNs)?new Date(item.mtimeNs/1000000).toLocaleString():'';}
+ function renderQueue(){
+  const live=!!bridge&&!stopped,available=live&&connected&&queue?.folderAvailable,items=ready();
+  $('olderImage').disabled=busy||!available||!neighbor(-1);
+  $('newerImage').disabled=busy||!available||!neighbor(1);
+  $('loadLatest').disabled=busy||!available||!items.length;
+  $('browseImages').disabled=busy;
+  for(const id of ['refreshSource','changeFolder','stopCompanion'])$(id).disabled=busy||!live;
+  const index=items.findIndex(i=>i.id===currentId),item=index>=0?items[index]:currentItem;
+  $('imagePosition').textContent=index>=0?'Image '+(index+1)+' of '+items.length+' (oldest to newest) · '+item.name+' · '+localTime(item):currentId?'Current screenshot is no longer available in this folder; analysis is retained.':st.img?'Manually selected screenshot':items.length?'Choose a screenshot':'No completed image yet';
+  if(queue){
+   $('folderLabel').textContent=queue.folder||'Choose a screenshot folder';
+   $('pendingCount').textContent=items.filter(i=>!i.loaded).length+' new · '+items.length+' ready';
+   const files=queue.files||queue.images,checking=files.filter(i=>['candidate','pending'].includes(i.state)).length,bad=files.filter(i=>['rejected','unavailable'].includes(i.state)).length;
+   $('queueNotice').textContent=(!connected?'Connection unavailable. Current work is retained. ':queue.notice||'')+(checking?' Checking '+checking+' image(s); the newest ready image may be older than a file still being written.':'')+(bad?' '+bad+' unavailable/unreadable image(s); see Browse.':'')+(!(queue.discoveryComplete??queue.scanComplete)?' Initial folder discovery is still in progress.':'');
+  }
+  if($('galleryDialog').open)renderGallery();
+ }
+ let galleryLimit=100;
+ function renderGallery(){
+  const list=$('galleryList'),items=[...(queue?.files||queue?.images||[])].reverse();list.replaceChildren();
+  for(const item of items.slice(0,galleryLimit)){
+   const row=document.createElement('li'),button=document.createElement('button'),label=document.createElement('span');
+   button.textContent=item.name||'Screenshot';button.disabled=busy||!connected||item.state!=='ready';
+   button.addEventListener('click',()=>action(async()=>{userTouched=true;$('galleryDialog').close();return loadQueued(item.id);}));
+   label.textContent=' — '+item.state+' · '+localTime(item)+(item.detail?' · '+item.detail:'');row.append(button,label);list.appendChild(row);
+  }
+  $('gallerySummary').textContent=items.length?Math.min(galleryLimit,items.length)+' of '+items.length+' files; newest first.':'No companion files. You can choose a screenshot manually.';
+  $('galleryMore').hidden=galleryLimit>=items.length;
+ }
+ $('browseImages').addEventListener('click',()=>{galleryLimit=100;renderGallery();$('galleryDialog').showModal();});
+ $('galleryClose').addEventListener('click',()=>$('galleryDialog').close());
+ $('galleryMore').addEventListener('click',()=>{galleryLimit+=100;renderGallery();});
+ $('galleryManual').addEventListener('click',()=>{$('galleryDialog').close();$('newFile').click();});
+ function installQueue(value){
+  if(lastFolder!==null&&lastFolder!==value.folder){sourceEpoch++;currentId=null;currentItem=null;}
+  queue=value;lastFolder=value.folder;connected=true;renderQueue();
+ }
+ async function poll(){
+  if(!bridge||stopped||polling)return;polling=true;const folderTicket=folderEpoch,stateTicket=++stateEpoch;
+  try{
+   const first=await api('state');if(folderTicket!==folderEpoch||stateTicket!==stateEpoch||stopped)return;installQueue(first);
+   if(!preferencesLoaded){
+    preferencesLoaded=true;
+    if(revision===0&&!pending&&!st.img&&!userTouched&&queue.preferences){Rig.validateSettings(queue.preferences);suppress=true;Rig.setSettings(queue.preferences);suppress=false;renderSelection();}
+   }
+   // Check newest candidates first. A failed/locked file never blocks its neighbors.
+   for(const item of [...queue.images].reverse().filter(i=>i.state==='candidate').slice(0,2)){
+    if(folderTicket!==folderEpoch||stopped)return;
+    try{
+     const data=await api('image?id='+encodeURIComponent(item.id));let img;
+     try{img=await decode(data.dataUrl);}catch{if(folderTicket===folderEpoch)await api('validated',{id:item.id,ok:false});continue;}
+     if(folderTicket!==folderEpoch||stopped)return;
+     await api('validated',{id:item.id,ok:true,width:img.naturalWidth,height:img.naturalHeight});
+    }catch(e){if(folderTicket===folderEpoch)$('queueNotice').textContent='Screenshot temporarily unavailable; will retry. '+e.message;}
+   }
+   const value=await api('state');if(folderTicket!==folderEpoch||stateTicket!==stateEpoch||stopped)return;installQueue(value);
+   $('connectionStatus').textContent='Windows-local screenshot companion';
+   const newest=ready().at(-1),candidateAfter=newest&&queue.images.some(i=>i.state==='candidate'&&compare(i,newest)>0);
+   if(!autoOpened&&!userTouched&&!pending&&!st.img&&!dirty&&!busy&&newest&&!candidateAfter&&(queue.discoveryComplete??queue.scanComplete)){
+    await action(async()=>{if(!userTouched&&!pending&&!st.img){const ok=await loadQueued(newest.id,true);if(ok)autoOpened=true;}});
+   }
+  }catch(e){if(stopped)return;connected=false;$('connectionStatus').textContent='Companion unavailable';renderQueue();$('queueNotice').textContent=e.message+' Current work is retained. Use Refresh to retry.';}
+  finally{polling=false;if(!stopped)setTimeout(poll,1200);}
+ }
+ async function loadQueued(id,automatic=false){
+  if(!id)return false;if(!automatic)userTouched=true;
+  if(id===currentId&&st.img&&!pending)return true;
+  const ticket=++sourceEpoch,folderTicket=folderEpoch;
+  const data=await api('image?id='+encodeURIComponent(id)),img=await decode(data.dataUrl);
+  if(ticket!==sourceEpoch||folderTicket!==folderEpoch||stopped||automatic&&(userTouched||pending||st.img||dirty))return false;
+  const ok=await acceptImage(img,{sha256:data.sha256,detected_format:data.format,sourceWidth:data.sourceWidth||img.naturalWidth,sourceHeight:data.sourceHeight||img.naturalHeight,source_file_name:queue?.images.find(i=>i.id===id)?.name},id,ticket);
+  if(ok){const value=await api('loaded',{id});if(folderTicket===folderEpoch)installQueue(value);}return ok;
+ }
+ $('olderImage').addEventListener('click',()=>action(()=>loadQueued(neighbor(-1))));
+ $('newerImage').addEventListener('click',()=>action(()=>loadQueued(neighbor(1))));
+ $('loadLatest').addEventListener('click',()=>action(()=>loadQueued(ready().at(-1)?.id)));
+ $('refreshSource').addEventListener('click',()=>action(async()=>{const ticket=++stateEpoch,value=await api('refresh',{});if(ticket===stateEpoch)installQueue(value);$('connectionStatus').textContent='Windows-local screenshot companion';}));
+ $('changeFolder').addEventListener('click',()=>action(async()=>{userTouched=true;sourceEpoch++;folderEpoch++;stateEpoch++;const value=await api('change-folder',{});installQueue(value);}));
+ $('stopCompanion').addEventListener('click',()=>action(async()=>{if(!await guard())return false;sourceEpoch++;folderEpoch++;await api('stop',{});stopped=true;connected=false;$('connectionStatus').textContent='Companion stopped — current image remains available';return true;}));
+
+ if(location.protocol==='http:'&&location.hostname==='127.0.0.1'){
+  let token=new URLSearchParams(location.hash.slice(1)).get('rig-token');
+  try{token=token||sessionStorage.getItem('rig-companion-token');}catch{}
+  if(token&&/^[A-Za-z0-9_-]{32,128}$/.test(token)){
+   bridge=token;
+   try{sessionStorage.setItem('rig-companion-token',token);history.replaceState(null,'',location.pathname);}catch{}
+   poll();
+  }
+ }
+ if(EMBED_IMAGE)action(async()=>{
+  const img=await decode(EMBED_IMAGE),meta=EMBED_META||{};
+  if(!/^[a-f0-9]{64}$/.test(meta.sha256||''))throw Error('This embedded page has no source fingerprint. Reselect the original screenshot to begin.');
+  await acceptImage(img,{...meta,sourceWidth:meta.decoded_dimensions?.[0]||img.naturalWidth,sourceHeight:meta.decoded_dimensions?.[1]||img.naturalHeight});
+ });
+ renderSelection();
+ return {projectText,openText,manualFile,acceptImage,guard,save,decode,working,loadQueued,poll,action,ready,neighbor,installQueue,get currentId(){return currentId;},get dirty(){return dirty;},get pending(){return pending;},get identity(){return imageIdentity;}};
+})();
+</script>
+</body></html>
