@@ -27,9 +27,9 @@ Both older example layouts used nominal **80 m** spacing, a **provisional 12.24 
 
 ## Get the player package
 
-Use the **Rhino-Rig-Planner-Runtime.zip** asset supplied with the beta. When a beta is published, player downloads will be listed in this repository's [Releases](https://github.com/erichards2222-maker/rhino-rig-layout-planner/releases). The Source ZIP is for contributors and includes the build tools and synthetic tests.
+**Download the current community beta:** select **Code → Download ZIP** at the top of this repository, or [download the current source snapshot](https://github.com/erichards2222-maker/rhino-rig-layout-planner/archive/refs/heads/main.zip). Extract the ZIP; the planner runs directly without a build. This snapshot includes developer source and synthetic tests alongside the runnable files. A smaller player-only Runtime ZIP may be published later under [Releases](https://github.com/erichards2222-maker/rhino-rig-layout-planner/releases).
 
-1. Extract the complete Runtime ZIP into a new local folder.
+1. Extract the complete downloaded ZIP into a local folder. Keep the included `src` folder beside `index.html` and `Start Rig Planner.pyw`.
 2. On Windows, with **Python 3.10+ including Tk** installed, double-click **Start Rig Planner.pyw**. Choose the screenshot folder and keep the visible status window open; use **Quit** to stop the helper.
 3. If the file association is missing, open the launcher with Python's windowed interpreter. **DIAGNOSTICS_RIG_PLANNER.cmd** is the optional console troubleshooting route.
 4. Without Python/Tk, open **index.html** and select images manually. This browser-only mode does not monitor folders automatically.
