@@ -56,9 +56,14 @@ class BoundaryTests(unittest.TestCase):
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         inventory = json.loads((ROOT / "distribution.json").read_text(encoding="utf-8"))
-        required = {"README.md", "QUICKSTART.md", "BETA_TESTING.md", "SECURITY.md"}
+        required = {"README.md", "QUICKSTART.md", "BETA_TESTING.md", "SECURITY.md", "LICENSE"}
         self.assertTrue(required.issubset(inventory["files"]))
         self.assertTrue(set(inventory["runtimeFiles"]).issubset(inventory["files"]))
+        self.assertIn("LICENSE", inventory["runtimeFiles"])
+        license_text = (ROOT / "LICENSE").read_text(encoding="utf-8")
+        self.assertIn("MIT License", license_text)
+        self.assertIn('The above copyright notice and this permission notice', license_text)
+        self.assertIn('THE SOFTWARE IS PROVIDED "AS IS"', license_text)
         with tempfile.TemporaryDirectory() as temporary:
             first = Path(temporary) / "first"
             second = Path(temporary) / "second"

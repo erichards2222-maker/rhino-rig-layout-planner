@@ -6,7 +6,7 @@
 
 ## Get the player package
 
-Use the **Rhino-Rig-Planner-Runtime.zip** asset supplied with the beta. No public beta download has been published yet. After publication, player downloads will be listed in this repository's [Releases](https://github.com/erichards2222-maker/rhino-rig-layout-planner/releases). The Source ZIP is for contributors and includes the build tools and synthetic tests.
+Use the **Rhino-Rig-Planner-Runtime.zip** asset supplied with the beta. When a beta is published, player downloads will be listed in this repository's [Releases](https://github.com/erichards2222-maker/rhino-rig-layout-planner/releases). The Source ZIP is for contributors and includes the build tools and synthetic tests.
 
 1. Extract the complete Runtime ZIP into a new local folder.
 2. On Windows, with **Python 3.10+ including Tk** installed, double-click **Start Rig Planner.pyw**. Choose the screenshot folder and keep the visible status window open; use **Quit** to stop the helper.
@@ -39,10 +39,10 @@ python -B tools/build.py --check
 python -B tools/package.py --output ../packages
 ```
 
-`src/shell.html`, `toolkit.css`, `png_export.js`, `rig.js`, `rig_session.js` and `app.js` generate both self-contained pages. The template differs only at its two image placeholders. Players need no build step. Packages use explicit allowlists, fixed ZIP attributes and per-file hash inventories. Keep package output outside the source folder. The Source package includes the beta and security guidance.
+`src/shell.html`, `toolkit.css`, `png_export.js`, `rig.js`, `rig_session.js` and `app.js` generate both self-contained pages. The template differs only at its two image placeholders. Players need no build step. Packages use explicit allowlists, fixed ZIP attributes and per-file hash inventories. Keep package output outside the source folder. The Source package includes the beta and security guidance and the MIT license notice; the Runtime package also includes the license notice.
 
 Use synthetic fixtures only. Preserve exact exclusion semantics, bounded solver work, cancellation and scenario defaults. Continuous circle/polygon constraints complement raster masks. Freehand simplification uses 1.5 working pixels; malformed/self-intersecting drafts remain available for correction. Undo history is bounded and session-local. Legacy masks retain unrecoverable erased pixels until explicit boundary rebuilding.
 
 Local projects keep a functional screenshot fingerprint for exact reconnection. Shared exports omit unnecessary source metadata. PNG sanitation preserves encoded pixels and validates chunks after encoding without changing browser settings. Visible screenshot details still require inspection before sharing.
 
-Inspired by Fumlop/Grumlop's EDRhinoSpotter screenshot-planning precedent. No third-party code or imagery is included. This is an unofficial community utility, with no endorsement claimed. A source-code license has not yet been selected; public availability alone does not grant reuse or redistribution rights.
+Inspired by Fumlop/Grumlop's EDRhinoSpotter screenshot-planning precedent. No third-party code or imagery is included. This is an unofficial community utility, with no endorsement claimed. This software is available under the [MIT License](LICENSE); retain the copyright and permission notice when distributing copies or substantial portions.

@@ -6,6 +6,7 @@
     ".gitignore",
     ".github/workflows/source-tests.yml",
     "README.md",
+    "LICENSE",
     "BETA_TESTING.md",
     "SECURITY.md",
     "QUICKSTART.md",
@@ -41,6 +42,7 @@
     "tests/rig_editor.test.cjs"
   ],
   "runtimeFiles": [
+    "LICENSE",
     "QUICKSTART.md",
     "Start Rig Planner.pyw",
     "DIAGNOSTICS_RIG_PLANNER.cmd",

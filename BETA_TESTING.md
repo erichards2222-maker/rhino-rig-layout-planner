@@ -1,6 +1,6 @@
 # Community beta — Rhino Rig Layout Planner
 
-**Status: beta candidate, not yet publicly released.** This release has passed synthetic source tests and scoped source review; the complete final Windows/Firefox editor workflow has **not** yet been qualified on the maintainer's gaming PC. Community users should test cautiously and report reproducible bugs without disclosing mining sites or private data.
+**Status: Community Beta / Experimental.** This candidate has passed synthetic source tests and scoped source review; the complete final Windows/Firefox editor workflow has **not** yet been qualified on the maintainer's gaming PC. Community users should test cautiously and report reproducible bugs without disclosing mining sites or private data.
 
 ## What it does
 
@@ -30,4 +30,4 @@ This is an unofficial Elite Dangerous community utility and is not associated wi
 
 ## Source licensing
 
-A source-code license has **not yet been selected** for this beta candidate. The maintainer must deliberately choose and add an appropriate license before enabling broader redistribution or open-source collaboration. Do not assume that a public GitHub repository alone grants permission to reuse or redistribute code.
+Released under the [MIT License](LICENSE). Redistributions must preserve its copyright and permission notice. The license covers the author's software, not third-party game assets or trademarks.
